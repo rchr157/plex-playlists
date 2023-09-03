@@ -26,7 +26,7 @@ def push_plex(plex, v, prepend, section, playlists):
     url = v['plex_server'] + '/playlists/upload?'
     headers = {'cache-control': "no-cache"}
     section_id = plex.library.section(section).key
-    failed = 0
+    failed = []
 
     for playlist in playlists:
         if playlist.endswith('.m3u'):
@@ -44,7 +44,7 @@ def push_plex(plex, v, prepend, section, playlists):
             if not resp.ok:
                 print('ERROR: Return code: %d Reason: %s' %
                       (resp.status_code, resp.reason))
-                failed += 1
+                failed.append(name)
         else:
             print('File format not accepted for: ' + playlist)
     # Scan Music Library for new items
