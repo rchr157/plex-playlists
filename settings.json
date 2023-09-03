@@ -1,11 +1,7 @@
 {
-  "plex_server": "http://192.168.0.5:32400",
-  "plex_token": "F4jDbqHfCsiU22CXcT-4",
-  "playlist_directory": "/home/christian/Synology/data/media/music/main/__Playlists",
-  "export_directory": "/home/christian/Downloads/Music/Plex/export",
-  "prepends": [
-    "/data/music/main/",
-    "/volume1/media/Music/All Music",
-    "Z:\\home\\christian\\Synology\\data\\media\\music\\main"
-  ]
+  "plex_server": "",
+  "plex_token": "",
+  "playlist_directory": "",
+  "export_directory": "",
+  "prepends": []
 }
