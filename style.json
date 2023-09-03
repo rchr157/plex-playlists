@@ -1,0 +1,52 @@
+{
+  "QMainWindow": [
+    {
+      "tittle": "Plex Playlists",
+      "icon": ":/icons/gold/music-note-slider-2-svgrepo-com.svg",
+      "frameless": true,
+      "transluscentBg": true,
+      "sizeGrip": "sizeGrip"
+    }
+  ],
+  "QCustomSlideMenu": [
+    {
+      "name": "leftMenuContainer",
+      "defaultSize": [
+        {
+          "width": 50,
+          "height": "parent"
+        }
+      ],
+      "collapsedSize": [
+        {
+          "width": 50,
+          "height": "parent"
+        }
+      ],
+      "expandedSize": [
+        {
+          "width": 125,
+          "height": "parent"
+        }
+      ],
+      "toggleButton": [
+        {
+          "buttonName": "btn_menu",
+          "icons": [
+            {
+              "whenMenuIsCollapsed": ":/light/icons/light/hamburger-menu-svgrepo-com.svg",
+              "whenMenuIsExpanded": ":/golden/icons/gold/hamburger-menu-svgrepo-com.svg"
+            }
+          ]
+        }
+      ],
+      "menuTransitionAnimation": [
+        {
+          "animationDuration": 500,
+          "animationEasingCurve": "Linear"
+        }
+      ]
+    }
+  ]
+
+}
