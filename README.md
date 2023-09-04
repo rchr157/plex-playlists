@@ -15,7 +15,8 @@ Plex Playlist is a desktop app that allows users to easily manage their playlist
   - Download Spotify playlists into plex
   - Download Plex pllaylists into Spotify
 - Allow user to review changes between plex playlist and local playlist
-- Allow user to update tracks inside playlist 
+- Allow user to update tracks inside playlist
+- Sync ratings between MusicBee and Plex
 
 # Installing [WIP]
 Coming Soon
