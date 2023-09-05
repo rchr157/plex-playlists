@@ -11,9 +11,10 @@ multidisc = ["CD1", "CD2", "Disc1", "Disc2"]
 
 
 # Function to load variables from json file
-def load_variables():
-    cwd = os.path.dirname(os.path.abspath(__file__))
-    varfile = os.path.join(cwd, 'settings.json')
+def load_variables(varfile=None):
+    if not varfile:
+        cwd = os.path.dirname(os.path.abspath(__file__))
+        varfile = os.path.join(cwd, 'settings.json')
     if os.path.exists(varfile):
         file = open(varfile)
         variables = json.load(file)
@@ -27,29 +28,36 @@ def push_plex(plex, v, prepend, section, playlists):
     headers = {'cache-control': "no-cache"}
     section_id = plex.library.section(section).key
     failed = []
+    response = []
+    query = []
 
     for playlist in playlists:
         if playlist.endswith('.m3u'):
             print('Sending updated playlist to Plex: ' + playlist)
             path = os.path.dirname(playlist)
             name = os.path.basename(playlist)
-            folder = os.path.basename(os.path.normpath(path)) + "/"
+            folder = os.path.basename(os.path.normpath(path))
+            plex_path = os.path.join(prepend, folder, name)
 
             querystring = urllib.parse.urlencode(OrderedDict(
-                [("sectionID", section_id), ("path", prepend + folder + name), ("X-Plex-Token", v['plex_token'])]))
+                [("sectionID", section_id), ("path",plex_path ), ("X-Plex-Token", v['plex_token'])]))
             resp = requests.post(
                 url, data="", headers=headers, params=querystring, verify=True)
+
+            response.append(resp)
+            query.append(resp.url)
 
             # If the post failed then print the return code and the reason for failing.
             if not resp.ok:
                 print('ERROR: Return code: %d Reason: %s' %
                       (resp.status_code, resp.reason))
                 failed.append(name)
+
         else:
             print('File format not accepted for: ' + playlist)
     # Scan Music Library for new items
     plex.library.section(section).update()
-    return failed, resp
+    return failed, response
 
 
 # Function to download playlists from plex library
@@ -64,6 +72,19 @@ def export_playlist(export_path, playlist, name):
             # Open file and save location
             output.write(item.locations[0] + "\n")
 
+
+def check_playlist_availability(local_playlists, server_playlists):
+    available = []
+    not_available = []
+    # Compare selected files to playlists available
+    for file in local_playlists:
+        new_file = os.path.basename(os.path.splitext(file)[0])
+        if new_file in server_playlists:
+            available.append(file)
+        else:
+            not_available.append(file)
+
+    return available, not_available
 
 # Function to handle prepend changes while exporting playlist
 def reformat_playlist(playlist, prepend):

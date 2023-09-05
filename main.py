@@ -10,6 +10,15 @@ from main_ui import Ui_MainWindow
 # from Custom_Widgets.Widgets import *
 
 import playlist_module as pp
+# TODO: Clean up logic for calling playlist module
+# TODO: Check plex server, and token input is correct
+# TODO: Highlight lineEdits and combobox during tutorial
+# TODO: Create custom window for pop ups
+# TODO: Optimize library section to prepend and directory
+# TODO: Allow user to view changes in local playlists vs plex playlists and pick and choose edits
+# TODO: Add Spotify functionality
+    # TODO: Download and Upload playlists
+
 
 basedir = os.path.dirname(__file__)
 
@@ -31,7 +40,7 @@ class MainWindow(QMainWindow):
         self.ui.stackedWidget.setCurrentWidget(self.ui.page_home)
 
         # load variables
-        self.load_json()
+        self.load_variables()
 
         # Menus
         self.ui.actionLoad_Settings.triggered.connect(lambda: self.load_json())
@@ -51,10 +60,11 @@ class MainWindow(QMainWindow):
 
         # Plex Page
         # handle plex buttons
+        self.ui.list_library_playlist.clicked.connect(lambda: self.update_plex_buttons())
         self.ui.btn_plex_connect.clicked.connect(lambda: self.connect_plex())
         self.ui.btn_plex_upload.clicked.connect(lambda: self.plex_upload())
         self.ui.btn_plex_download.clicked.connect(lambda: self.plex_download())
-        self.ui.list_library_playlist.clicked.connect(lambda: self.update_plex_buttons())
+        self.ui.btn_plex_update.clicked.connect(lambda: self.plex_update())
 
         # Playlist Page
         self.ui.cmb_library_sections.currentTextChanged.connect(lambda: self.update_library_playlists())
@@ -126,13 +136,36 @@ class MainWindow(QMainWindow):
         data['plex_token'] = self.ui.lned_plex_token.text()
         data['playlist_directory'] = self.ui.lned_playlist_directory.text()
         data['export_directory'] = self.ui.lned_export_directory.text()
-        data['prepends'] = [self.ui.cmbbx_playlist_prepend.itemText(i) for i in range(self.ui.cmbbx_playlist_prepend.count())]
-        with open(os.path.join(cwd,'settings.json'), 'w') as output:
+        data['prepends'] = [self.ui.cmb_playlist_prepend.itemText(i) for i in range(self.ui.cmb_playlist_prepend.count())]
+        with open(os.path.join(cwd, 'settings.json'), 'w') as output:
             json.dump(data, output, indent=2, separators=(',', ': '))
-        pass
+
+        # Let user know Saving data is complete
+        title = "Saving Complete!"
+        buttons = QMessageBox.Ok
+        msgtype = QMessageBox.Information
+        # First Message
+        message = "Your settings have been saved!"
+        msg = self.MessageBox(title, message, buttons, msgtype)
 
     def load_json(self):
-        self.variables = pp.load_variables()
+        if self.variables['plex_server'] == '':
+            # Ask user to select file to load variables
+            filter = ("JSON Files (*.json)", "All Files (*)")
+            file = self.FileDialog(directory=basedir, fmt=filter)
+            if file:
+                self.load_variables(file[0])
+                return
+        # Let user know Saving data is complete
+        title = "Loading Complete!"
+        buttons = QMessageBox.Ok
+        msgtype = QMessageBox.Information
+        # First Message
+        message = "Your settings have been loaded!"
+        msg = self.MessageBox(title, message, buttons, msgtype)
+
+    def load_variables(self, file=None):
+        self.variables = pp.load_variables(file)
         if self.variables:
             # Playlist page
             self.ui.cmb_playlist_prepend.addItems(self.variables["prepends"])
@@ -319,6 +352,7 @@ class MainWindow(QMainWindow):
         if section != 'Select a Music Library':
             # Grab data path for selected library section
             self.ui.cmb_library_prepend.addItems(self.plex.library.section(section).locations)
+            self.ui.cmb_playlist_prepend.addItems(self.plex.library.section(section).locations)
             # Grab available playlists for selected library section
             playlist_list = [playlist.title for playlist in self.plex.library.section(section).playlists()]
             if not playlist_list:
@@ -338,9 +372,7 @@ class MainWindow(QMainWindow):
             self.change_button_ui(self.ui.btn_plex_upload, enable=False,
                                   stylesheet="border: 1px solid #51391B; color: #BABABA", icon=icons[1])
 
-
     def plex_upload(self):
-        # TODO: Add code to replace existing playlist with uploaded playlist
         # This function allows a user to select playlist files to be uploaded to plex library
         print("upload button pressed!")
         # Get plex library details
@@ -350,35 +382,41 @@ class MainWindow(QMainWindow):
         directory = self.ui.lned_playlist_directory.text()
         filter = ("M3U Files (*.m3u *.m3u8)", "All Files (*)")
         files = self.FileDialog(directory=directory, fmt=filter)
-        # Upload files selected
         if not files:
             return
-        else:
-            # TODO: Add status bar or window to let user know its processing playlists
-            failed, response = pp.push_plex(plex=self.plex, prepend=prepend, section=section, v=self.variables,
-                                            playlists=files)
-            self.update_library_playlists()
-            if failed > 0:
-                title = "Uh Oh!"
-                buttons = QMessageBox.Ok
-                msgtype = QMessageBox.Critical
-                message = "{} error(s) encountered while trying to download playlists. \nResponse: {}".format(failed,
-                                                                                                              response)
-                msg = self.MessageBox(title, message, buttons, msgtype)
-            else:
-                # Let user know upload is complete
-                title = "Uploads Complete!"
-                buttons = QMessageBox.Ok
-                msgtype = QMessageBox.Information
-                # First Message
-                message = "Your uploads are complete!"
-                msg = self.MessageBox(title, message, buttons, msgtype)
 
+        # Upload files selected
+        # TODO: Add status bar or window to let user know its processing playlists
+        failed, response = pp.push_plex(plex=self.plex, prepend=prepend, section=section, v=self.variables,
+                                        playlists=files)
+        # Refresh playlist view
+        self.update_library_playlists()
+        if len(failed) > 0:
+            title = "Uh Oh!"
+            buttons = QMessageBox.Ok
+            msgtype = QMessageBox.Critical
+            message = "{} error(s) encountered while trying to download playlists. \nResponse: {}".format(failed,
+                                                                                                          response)
+            detail = "\n".join(failed)
+            msg = self.MessageBox(title, message, buttons, msgtype, details=detail)
+        else:
+            # Let user know upload is complete
+            title = "Uploads Complete!"
+            buttons = QMessageBox.Ok
+            msgtype = QMessageBox.Information
+            # First Message
+            message = "Your uploads are complete!"
+            detail = "\n".join(files)
+            msg = self.MessageBox(title, message, buttons, msgtype, details=detail)
 
     def plex_download(self):
         # This function allows a user to download playlist from their plex library to their local computer
         print("download button pressed!")
         directory = self.ui.lned_export_directory.text()
+        if not directory:
+            self.browse_export_directory()
+            if not directory:
+                return
         section = self.ui.cmb_library_sections.currentText()
         playlists = [playlist.text() for playlist in self.ui.list_library_playlist.selectedItems()]
         for name in playlists:
@@ -396,47 +434,85 @@ class MainWindow(QMainWindow):
     def plex_update(self):
         # This function allows a user to select playlist files to be uploaded to plex library
         print("upload button pressed!")
+
         # Get plex library details
         section = self.ui.cmb_library_sections.currentText()
         prepend = self.ui.cmb_library_prepend.currentText()
-        playlists = self.ui.list_library_playlist.selectedItems()
+        playlists = [item.text() for item in self.ui.list_library_playlist.selectedItems()]
+
         # Confirm with user that the following playlists will be deleted, allow user to cancel
         title = "Replacing Playlists"
         message = ("This operation will delete your playlists on your plex server. It is recommended you download "
                    "copies incase this operation encounters any issues. See details for playlists.")
         btns = QMessageBox.Ok | QMessageBox.Cancel
         msgtype = QMessageBox.Warning
-        msg = self.MessageBox(title, message, btns, msgtype, details=playlists)
+        detail = "\n".join(playlists)
+        msg = self.MessageBox(title, message, btns, msgtype, details=detail)
         if msg == QMessageBox.Cancel:
             return
+
         # Ask user to select files
         directory = self.ui.lned_playlist_directory.text()
         filter = ("M3U Files (*.m3u *.m3u8)", "All Files (*)")
         files = self.FileDialog(directory=directory, fmt=filter)
-        # TODO: Compare selected files to playlists available
-        new_files = [os.path.basename(os.path.splitext(file)[0]) for file in files]  # keep only filename
-        new_list = [file for file in new_files if file in playlists]  # Compare selected files with plex playlists
-        # Upload files selected
         if not files:
             return
+
+        # Compare selected files to playlists available
+        new_list, pre_notavail = pp.check_playlist_availability(files, playlists)
+
+        # Upload files selected
+        tempdir = os.path.join(basedir, "temp")  # temp directory for download
+        for name in playlists:
+            playlist = self.plex.library.section(section).playlist(name)
+            pp.export_playlist(tempdir, playlist, name)  # download copy of playlist prior to deleting
+            self.plex.library.section(section).playlist(name).delete()  # delete playlist from plex
+        # TODO: Add status bar or window to let user know its processing playlists
+        failed, response = pp.push_plex(plex=self.plex, prepend=prepend, section=section, v=self.variables,
+                                        playlists=new_list)  # push new playlist to plex
+        # notify user of playlists not available to update
+        if len(pre_notavail) > 0:
+            title = "Playlists Not Available"
+            message = ('Oh!\nLooks like some files were not located on your server.\n\nWould you '
+                       'like to upload them?\n\nSee details for list of files.')
+            btns = QMessageBox.Ok | QMessageBox.Cancel
+            msgtype = QMessageBox.Warning
+            detail = "\n".join(pre_notavail)
+            msg_up = self.MessageBox(title, message, btns, msgtype, details=detail)
+            if msg_up == QMessageBox.Ok:
+                failed, response = pp.push_plex(plex=self.plex, prepend=prepend, section=section, v=self.variables,
+                                                playlists=pre_notavail)
+
+        # Check that playlists were uploaded
+        self.update_library_playlists()
+        # Get updated list of playlists
+        playlists = [item.text() for item in self.ui.list_library_playlist.selectedItems()]
+        match, post_notavail = pp.check_playlist_availability(files, playlists)
+
+        # notify user of playlists not available to update
+        if len(post_notavail) > 0:
+            title = "Playlists Updated with Issues"
+            message = ('Playlist updated with some issues. Some files failed to be replaced. See details for list. Downloaded copies located: '
+                       '\n{}'.format(tempdir))
+            btns = QMessageBox.Ok | QMessageBox.Cancel
+            msgtype = QMessageBox.Warning
+            detail = "\n".join(post_notavail)
+            msg = self.MessageBox(title, message, btns, msgtype, details=detail)
         else:
-            # TODO: Download a temp copy incase of issues
-            tempdir = os.path.join(basedir, "temp")
-            for name in playlists:
-                playlist = self.plex.library.section(section).playlist(name)
-                pp.export_playlist(tempdir, playlist, name)
-                self.plex.library.section(section).playlist(name).delete()
-            # TODO: Add status bar or window to let user know its processing playlists
-            failed, response = pp.push_plex(plex=self.plex, prepend=prepend, section=section, v=self.variables,
-                                            playlists=new_list)
-            if len(failed) > 0:
-                # let user know of failed files
-                title = "Failed Playlists"
-                message = ('Some files failed to be replaced. See details for list. Downloaded copies located: '
-                           '\n{}'.format(tempdir))
-                btns = QMessageBox.Ok | QMessageBox.Cancel
-                msgtype = QMessageBox.Warning
-                msg = self.MessageBox(title, message, btns, msgtype, details=failed)
+            # Clean up downloaded copies of playlists
+            for file in files:
+               check_file = os.path.join(tempdir, os.path.basename(file))
+               if check_file:
+                   os.remove(check_file)
+
+            # Notify user updating playlist complete
+            title = "Playlists Updated"
+            message = 'Playlist update completed without issues! '
+            btns = QMessageBox.Ok
+            msgtype = QMessageBox.Information
+            detail = "\n".join(files)
+            msg = self.MessageBox(title, message, btns, msgtype, details=detail)
+
 
     # Playlist Functions
     def convert_playlists(self):
