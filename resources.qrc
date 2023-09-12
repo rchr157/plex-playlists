@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="light">
+    <file>icons/light/plex-svgrepo-com.svg</file>
+    <file>icons/light/spotify-svgrepo-com.svg</file>
     <file>icons/light/refresh-svgrepo-com.svg</file>
     <file>icons/light/ssd-round-svgrepo-com.svg</file>
     <file>icons/light/add-folder-svgrepo-com.svg</file>
@@ -71,6 +73,8 @@
     <file>icons/white/vinyl-svgrepo-com.svg</file>
   </qresource>
   <qresource prefix="golden">
+    <file>icons/gold/plex-svgrepo-com.svg</file>
+    <file>icons/gold/spotify-svgrepo-com.svg</file>
     <file>icons/gold/refresh-svgrepo-com.svg</file>
     <file>icons/gold/home-svgrepo-com.svg</file>
     <file>icons/gold/settings-svgrepo-com.svg</file>
@@ -84,7 +88,6 @@
     <file>icons/gold/home-svgrepo-com.svg</file>
     <file>icons/gold/list-heart-svgrepo-com.svg</file>
     <file>icons/gold/music-library-2-svgrepo-com.svg</file>
-    <file>icons/gold/music-note-slider-2-svgrepo-com.svg</file>
     <file>icons/gold/playlist-2-svgrepo-com.svg</file>
     <file>icons/gold/question-circle-svgrepo-com.svg</file>
     <file>icons/gold/server-square-cloud-svgrepo-com.svg</file>

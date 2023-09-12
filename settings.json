@@ -3,5 +3,8 @@
   "plex_token": "",
   "playlist_directory": "",
   "export_directory": "",
-  "prepends": []
+  "prepends": [],
+  "spotify_client_id": "",
+  "spotify_client_secret": "",
+  "spotify_redirect_uri": ""
 }

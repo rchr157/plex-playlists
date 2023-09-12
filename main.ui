@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>890</width>
-    <height>627</height>
+    <width>970</width>
+    <height>630</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,7 +23,7 @@ QLineEdit{
 	background-color: #565656;
 	color: white;
 	border-radius: 6px;
-	font-size: 15px;
+	font-size: 14px;
 	height: 32;
 }
 QComboBox{
@@ -31,7 +31,7 @@ QComboBox{
 	selection-background-color: black;
 	selection-color: white;
 	color: black;
-	font-size: 15px;
+	font-size: 14px;
 	height: 26;
 }
 QListWidget{
@@ -42,11 +42,13 @@ QListWidget{
 	alternate-background-color: #565656;
 }
 QLabel{
-	font-size:17px;
+	font-size:16px;
 }
-
-#lbl_home_title, #lbl_plex_title, #lbl_playlist_title, #lbl_settings_title{
-	font-size: 28px}
+QGroupBox{
+	font-size: 23px;
+}
+#lbl_home_title, #lbl_plex_title, #lbl_spotify_title, #lbl_playlist_title, #lbl_settings_title{
+	font-size: 32px}
 
 #centralwidget{
 	background-color: #202020;
@@ -55,12 +57,12 @@ QLabel{
 	background-color: #1B1B1B;
 }
 
-#btn_menu,#btn_plex_page,#btn_playlist_page,#btn_settings_page,#btn_help{
+#btn_menu,#btn_plex_page,#btn_spotify_page,#btn_playlist_page,#btn_settings_page,#btn_help{
 	background-color: #1B1B1B;
 	border: 6px solid #1B1B1B;
 	border-radius: 6px;
 	color: #BABABA;
-	font-size: 17px;
+	font-size: 16px;
 	text-align: left;
 }
 #btn_home_page{
@@ -68,31 +70,31 @@ QLabel{
 	border: 6px solid black;
 	border-radius: 6px;
 	color: #E5A00D;
-	font-size: 17px;
+	font-size: 16px;
 	text-align: left;
 }
 
-#btn_plex_download, #btn_plex_upload, #btn_plex_update{
+#btn_plex_download, #btn_plex_upload, #btn_plex_update, #btn_spotify_download, #btn_spotify_upload, #btn_spotify_update{
 	background-color: transparent;
 	color: #BABABA;
 	border: 1px solid #51391B;
 	border-radius: 20px;
-	font-size: 17px;
+	font-size: 16px;
 	height: 21px;
 	width: 104px;
 	padding: 10px 18px;
 }
-#btn_plex_connect{ 
+#btn_plex_connect, #btn_spotify_connect{ 
 	background-color: #51391B;
 	color: #BABABA;
 	border-radius: 20px;
-	font-size: 18px;
+	font-size: 16px;
 	height: 21px;
 	width: 130px;
 	padding: 10px 18px;
 }
 
-#cmb_library_prepend, #cmb_library_sections{
+#cmb_library_prepend, #cmb_library_sections, #cmb_spotify_prepend{
 	background-color: #272727;
 }
 #btn_playlist_convert, #btn_playlist_combine, #btn_tutorial{
@@ -100,23 +102,22 @@ QLabel{
 	border: 1px solid #E5A00D;
 	color: #E5A00D;
 	border-radius: 20px;
-	font-size: 17px;
+	font-size: 16px;
 	height: 21px;
 	width: 104px;
 	padding: 10px 18px;
 }
 
-#grpbox_plex_settings, #grpbox_playlist_settings{
-	font-size: 20px;
-}
+
 #lned_plex_server{
 	color: gray;
 }
 #chkbx_ignore_all{
-	font-size: 15px;
+	font-size: 16px;
 }
 #btn_add_prepend, #btn_add_section_directory, #btn_playlist_directory, #btn_export_directory{
 	background-color: transparent;
+	border: none;
 }
 
 
@@ -324,8 +325,39 @@ QLabel{
                </property>
                <property name="icon">
                 <iconset resource="resources.qrc">
-                 <normaloff>:/light/icons/light/vinyl-svgrepo-com.svg</normaloff>
-                 <activeon>:/white/icons/white/vinyl-svgrepo-com.svg</activeon>:/light/icons/light/vinyl-svgrepo-com.svg</iconset>
+                 <normaloff>:/light/icons/light/plex-svgrepo-com.svg</normaloff>:/light/icons/light/plex-svgrepo-com.svg</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>24</width>
+                 <height>24</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item alignment="Qt::AlignLeft">
+              <widget class="QPushButton" name="btn_spotify_page">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>130</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
+               </property>
+               <property name="text">
+                <string>Spotify</string>
+               </property>
+               <property name="icon">
+                <iconset resource="resources.qrc">
+                 <normaloff>:/light/icons/light/spotify-svgrepo-com.svg</normaloff>:/light/icons/light/spotify-svgrepo-com.svg</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -533,7 +565,7 @@ QLabel{
              <item>
               <widget class="QStackedWidget" name="stackedWidget">
                <property name="currentIndex">
-                <number>1</number>
+                <number>4</number>
                </property>
                <widget class="QWidget" name="page_home">
                 <layout class="QVBoxLayout" name="verticalLayout_20">
@@ -606,8 +638,11 @@ QLabel{
                </widget>
                <widget class="QWidget" name="page_plex">
                 <layout class="QVBoxLayout" name="verticalLayout_21">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
                  <property name="topMargin">
-                  <number>7</number>
+                  <number>9</number>
                  </property>
                  <item alignment="Qt::AlignTop">
                   <widget class="QWidget" name="frame_plex_title" native="true">
@@ -621,7 +656,7 @@ QLabel{
                     <property name="bottomMargin">
                      <number>0</number>
                     </property>
-                    <item alignment="Qt::AlignLeft">
+                    <item alignment="Qt::AlignLeft|Qt::AlignTop">
                      <widget class="QLabel" name="lbl_plex_title">
                       <property name="font">
                        <font>
@@ -635,7 +670,7 @@ QLabel{
                       </property>
                      </widget>
                     </item>
-                    <item alignment="Qt::AlignRight">
+                    <item alignment="Qt::AlignRight|Qt::AlignTop">
                      <widget class="QPushButton" name="btn_plex_connect">
                       <property name="enabled">
                        <bool>false</bool>
@@ -663,6 +698,9 @@ QLabel{
                  </item>
                  <item>
                   <layout class="QVBoxLayout" name="frame_plex_body">
+                   <property name="spacing">
+                    <number>6</number>
+                   </property>
                    <property name="leftMargin">
                     <number>9</number>
                    </property>
@@ -682,7 +720,7 @@ QLabel{
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_26">
                       <property name="spacing">
-                       <number>6</number>
+                       <number>5</number>
                       </property>
                       <property name="leftMargin">
                        <number>0</number>
@@ -733,7 +771,7 @@ QLabel{
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_10">
                       <property name="spacing">
-                       <number>6</number>
+                       <number>5</number>
                       </property>
                       <property name="leftMargin">
                        <number>0</number>
@@ -787,7 +825,7 @@ QLabel{
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_27">
                       <property name="spacing">
-                       <number>6</number>
+                       <number>5</number>
                       </property>
                       <property name="leftMargin">
                        <number>0</number>
@@ -914,9 +952,288 @@ QLabel{
                  </item>
                 </layout>
                </widget>
+               <widget class="QWidget" name="page_spotify">
+                <layout class="QVBoxLayout" name="verticalLayout_28">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                 <item alignment="Qt::AlignTop">
+                  <widget class="QFrame" name="frame_spotify_title">
+                   <property name="frameShape">
+                    <enum>QFrame::StyledPanel</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Raised</enum>
+                   </property>
+                   <layout class="QHBoxLayout" name="horizontalLayout_19">
+                    <property name="topMargin">
+                     <number>9</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>25</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item alignment="Qt::AlignLeft|Qt::AlignTop">
+                     <widget class="QLabel" name="lbl_spotify_title">
+                      <property name="font">
+                       <font>
+                        <pointsize>-1</pointsize>
+                        <weight>75</weight>
+                        <bold>true</bold>
+                       </font>
+                      </property>
+                      <property name="text">
+                       <string>Your Spotify Library</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item alignment="Qt::AlignRight|Qt::AlignTop">
+                     <widget class="QPushButton" name="btn_spotify_connect">
+                      <property name="enabled">
+                       <bool>false</bool>
+                      </property>
+                      <property name="cursor">
+                       <cursorShape>PointingHandCursor</cursorShape>
+                      </property>
+                      <property name="text">
+                       <string>Connect</string>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="resources.qrc">
+                        <normaloff>:/light/icons/light/server-square-cloud-svgrepo-com.svg</normaloff>:/light/icons/light/server-square-cloud-svgrepo-com.svg</iconset>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>24</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QFrame" name="frame_spotify_body">
+                   <property name="frameShape">
+                    <enum>QFrame::StyledPanel</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Raised</enum>
+                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_31">
+                    <property name="spacing">
+                     <number>10</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>7</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>25</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QFrame" name="frame_12">
+                      <property name="frameShape">
+                       <enum>QFrame::StyledPanel</enum>
+                      </property>
+                      <property name="frameShadow">
+                       <enum>QFrame::Raised</enum>
+                      </property>
+                      <layout class="QVBoxLayout" name="verticalLayout_30">
+                       <property name="spacing">
+                        <number>6</number>
+                       </property>
+                       <property name="leftMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="topMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="rightMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="bottomMargin">
+                        <number>0</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="lbl_spotify_prepend">
+                         <property name="font">
+                          <font>
+                           <pointsize>-1</pointsize>
+                          </font>
+                         </property>
+                         <property name="whatsThis">
+                          <string/>
+                         </property>
+                         <property name="text">
+                          <string>Directory Path</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QComboBox" name="cmb_spotify_prepend">
+                         <property name="enabled">
+                          <bool>false</bool>
+                         </property>
+                         <property name="font">
+                          <font>
+                           <pointsize>-1</pointsize>
+                          </font>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QFrame" name="frame_11">
+                      <property name="frameShape">
+                       <enum>QFrame::StyledPanel</enum>
+                      </property>
+                      <property name="frameShadow">
+                       <enum>QFrame::Raised</enum>
+                      </property>
+                      <layout class="QVBoxLayout" name="verticalLayout_29">
+                       <property name="spacing">
+                        <number>6</number>
+                       </property>
+                       <property name="leftMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="topMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="rightMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="bottomMargin">
+                        <number>0</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="lbl_spotify_playlists">
+                         <property name="font">
+                          <font>
+                           <pointsize>-1</pointsize>
+                          </font>
+                         </property>
+                         <property name="text">
+                          <string>Library Playlists</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QListWidget" name="list_spotify_playlist">
+                         <property name="enabled">
+                          <bool>false</bool>
+                         </property>
+                         <property name="font">
+                          <font>
+                           <pointsize>11</pointsize>
+                          </font>
+                         </property>
+                         <property name="alternatingRowColors">
+                          <bool>true</bool>
+                         </property>
+                         <property name="selectionMode">
+                          <enum>QAbstractItemView::ExtendedSelection</enum>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <layout class="QHBoxLayout" name="horizontalLayout_20">
+                         <property name="spacing">
+                          <number>20</number>
+                         </property>
+                         <property name="leftMargin">
+                          <number>30</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>55</number>
+                         </property>
+                         <item>
+                          <widget class="QPushButton" name="btn_spotify_download">
+                           <property name="enabled">
+                            <bool>false</bool>
+                           </property>
+                           <property name="text">
+                            <string>Download</string>
+                           </property>
+                           <property name="icon">
+                            <iconset resource="resources.qrc">
+                             <normaloff>:/light/icons/light/cloud-download-svgrepo-com.svg</normaloff>:/light/icons/light/cloud-download-svgrepo-com.svg</iconset>
+                           </property>
+                           <property name="iconSize">
+                            <size>
+                             <width>24</width>
+                             <height>24</height>
+                            </size>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QPushButton" name="btn_spotify_upload">
+                           <property name="enabled">
+                            <bool>false</bool>
+                           </property>
+                           <property name="text">
+                            <string>Upload</string>
+                           </property>
+                           <property name="icon">
+                            <iconset resource="resources.qrc">
+                             <normaloff>:/light/icons/light/cloud-upload-svgrepo-com.svg</normaloff>:/light/icons/light/cloud-upload-svgrepo-com.svg</iconset>
+                           </property>
+                           <property name="iconSize">
+                            <size>
+                             <width>24</width>
+                             <height>24</height>
+                            </size>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QPushButton" name="btn_spotify_update">
+                           <property name="enabled">
+                            <bool>false</bool>
+                           </property>
+                           <property name="text">
+                            <string>Replace</string>
+                           </property>
+                           <property name="icon">
+                            <iconset resource="resources.qrc">
+                             <normaloff>:/light/icons/light/refresh-svgrepo-com.svg</normaloff>:/light/icons/light/refresh-svgrepo-com.svg</iconset>
+                           </property>
+                           <property name="iconSize">
+                            <size>
+                             <width>24</width>
+                             <height>24</height>
+                            </size>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </item>
+                      </layout>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
                <widget class="QWidget" name="page_playlists">
                 <layout class="QVBoxLayout" name="verticalLayout_22">
-                 <item>
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                 <item alignment="Qt::AlignTop">
                   <widget class="QWidget" name="frame_playlist_title" native="true">
                    <property name="palette">
                     <palette>
@@ -1127,7 +1444,7 @@ QLabel{
                     <property name="bottomMargin">
                      <number>0</number>
                     </property>
-                    <item alignment="Qt::AlignTop">
+                    <item alignment="Qt::AlignLeft|Qt::AlignTop">
                      <widget class="QLabel" name="lbl_playlist_title">
                       <property name="font">
                        <font>
@@ -1356,7 +1673,7 @@ QLabel{
                      <number>25</number>
                     </property>
                     <property name="bottomMargin">
-                     <number>300</number>
+                     <number>310</number>
                     </property>
                     <item>
                      <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -1364,7 +1681,7 @@ QLabel{
                        <number>10</number>
                       </property>
                       <property name="topMargin">
-                       <number>7</number>
+                       <number>0</number>
                       </property>
                       <item>
                        <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -1506,7 +1823,7 @@ QLabel{
                  <property name="spacing">
                   <number>0</number>
                  </property>
-                 <item>
+                 <item alignment="Qt::AlignTop">
                   <widget class="QWidget" name="frame_settings_title" native="true">
                    <layout class="QHBoxLayout" name="horizontalLayout_12">
                     <property name="spacing">
@@ -1560,7 +1877,7 @@ QLabel{
                       </property>
                       <layout class="QHBoxLayout" name="horizontalLayout_13">
                        <property name="spacing">
-                        <number>0</number>
+                        <number>20</number>
                        </property>
                        <property name="leftMargin">
                         <number>0</number>
@@ -1579,7 +1896,7 @@ QLabel{
                          <property name="title">
                           <string>Plex Settings</string>
                          </property>
-                         <layout class="QHBoxLayout" name="horizontalLayout_14">
+                         <layout class="QHBoxLayout" name="horizontalLayout_21">
                           <property name="spacing">
                            <number>0</number>
                           </property>
@@ -1625,8 +1942,14 @@ QLabel{
                                <widget class="QLineEdit" name="lned_plex_server">
                                 <property name="minimumSize">
                                  <size>
-                                  <width>265</width>
+                                  <width>0</width>
                                   <height>0</height>
+                                 </size>
+                                </property>
+                                <property name="maximumSize">
+                                 <size>
+                                  <width>250</width>
+                                  <height>16777215</height>
                                  </size>
                                 </property>
                                 <property name="placeholderText">
@@ -1650,6 +1973,12 @@ QLabel{
                               </item>
                               <item>
                                <widget class="QLineEdit" name="lned_plex_token">
+                                <property name="maximumSize">
+                                 <size>
+                                  <width>250</width>
+                                  <height>16777215</height>
+                                 </size>
+                                </property>
                                 <property name="echoMode">
                                  <enum>QLineEdit::Normal</enum>
                                 </property>
@@ -1657,33 +1986,147 @@ QLabel{
                               </item>
                              </layout>
                             </item>
+                            <item>
+                             <widget class="QFrame" name="frame_9">
+                              <property name="frameShape">
+                               <enum>QFrame::StyledPanel</enum>
+                              </property>
+                              <property name="frameShadow">
+                               <enum>QFrame::Raised</enum>
+                              </property>
+                              <layout class="QVBoxLayout" name="verticalLayout_35">
+                               <item>
+                                <widget class="QCheckBox" name="chkbx_ignore_all">
+                                 <property name="cursor">
+                                  <cursorShape>PointingHandCursor</cursorShape>
+                                 </property>
+                                 <property name="text">
+                                  <string>Ignore 'All Music' Playlist</string>
+                                 </property>
+                                 <property name="checked">
+                                  <bool>true</bool>
+                                 </property>
+                                </widget>
+                               </item>
+                              </layout>
+                             </widget>
+                            </item>
                            </layout>
                           </item>
+                         </layout>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QGroupBox" name="groupbox_spotify_settings">
+                         <property name="title">
+                          <string>Spotify Settings</string>
+                         </property>
+                         <layout class="QHBoxLayout" name="horizontalLayout_14">
                           <item>
-                           <spacer name="horizontalSpacer">
-                            <property name="orientation">
-                             <enum>Qt::Horizontal</enum>
+                           <layout class="QVBoxLayout" name="verticalLayout_32">
+                            <property name="spacing">
+                             <number>6</number>
                             </property>
-                            <property name="sizeHint" stdset="0">
-                             <size>
-                              <width>40</width>
-                              <height>20</height>
-                             </size>
+                            <property name="topMargin">
+                             <number>5</number>
                             </property>
-                           </spacer>
-                          </item>
-                          <item alignment="Qt::AlignVCenter">
-                           <widget class="QCheckBox" name="chkbx_ignore_all">
-                            <property name="cursor">
-                             <cursorShape>PointingHandCursor</cursorShape>
+                            <property name="bottomMargin">
+                             <number>0</number>
                             </property>
-                            <property name="text">
-                             <string>Ignore 'All Music' Playlist</string>
-                            </property>
-                            <property name="checked">
-                             <bool>true</bool>
-                            </property>
-                           </widget>
+                            <item>
+                             <layout class="QVBoxLayout" name="verticalLayout_33">
+                              <property name="spacing">
+                               <number>0</number>
+                              </property>
+                              <property name="bottomMargin">
+                               <number>0</number>
+                              </property>
+                              <item>
+                               <widget class="QLabel" name="lbl_spotify_clientid">
+                                <property name="text">
+                                 <string>Client ID</string>
+                                </property>
+                               </widget>
+                              </item>
+                              <item>
+                               <widget class="QLineEdit" name="lned_spotify_clientid">
+                                <property name="minimumSize">
+                                 <size>
+                                  <width>0</width>
+                                  <height>0</height>
+                                 </size>
+                                </property>
+                                <property name="maximumSize">
+                                 <size>
+                                  <width>250</width>
+                                  <height>16777215</height>
+                                 </size>
+                                </property>
+                               </widget>
+                              </item>
+                             </layout>
+                            </item>
+                            <item>
+                             <layout class="QVBoxLayout" name="verticalLayout_34">
+                              <property name="spacing">
+                               <number>0</number>
+                              </property>
+                              <item>
+                               <widget class="QLabel" name="lbl_spotify_secret">
+                                <property name="text">
+                                 <string>Secret Key</string>
+                                </property>
+                               </widget>
+                              </item>
+                              <item>
+                               <widget class="QLineEdit" name="lned_spotify_secret">
+                                <property name="minimumSize">
+                                 <size>
+                                  <width>0</width>
+                                  <height>0</height>
+                                 </size>
+                                </property>
+                                <property name="maximumSize">
+                                 <size>
+                                  <width>250</width>
+                                  <height>16777215</height>
+                                 </size>
+                                </property>
+                                <property name="echoMode">
+                                 <enum>QLineEdit::Normal</enum>
+                                </property>
+                               </widget>
+                              </item>
+                             </layout>
+                            </item>
+                            <item>
+                             <layout class="QVBoxLayout" name="verticalLayout_38">
+                              <item>
+                               <widget class="QLabel" name="lbl_spotify_redirect">
+                                <property name="text">
+                                 <string>Redirect URI</string>
+                                </property>
+                               </widget>
+                              </item>
+                              <item>
+                               <widget class="QLineEdit" name="lned_spotify_redirect">
+                                <property name="minimumSize">
+                                 <size>
+                                  <width>0</width>
+                                  <height>0</height>
+                                 </size>
+                                </property>
+                                <property name="maximumSize">
+                                 <size>
+                                  <width>250</width>
+                                  <height>16777215</height>
+                                 </size>
+                                </property>
+                               </widget>
+                              </item>
+                             </layout>
+                            </item>
+                           </layout>
                           </item>
                          </layout>
                         </widget>
@@ -1851,7 +2294,7 @@ QLabel{
                                   </property>
                                   <property name="icon">
                                    <iconset resource="resources.qrc">
-                                    <normaloff>:/golden/icons/gold/folder-open-svgrepo-com.svg</normaloff>:/golden/icons/gold/folder-open-svgrepo-com.svg</iconset>
+                                    <normaloff>:/golden/icons/gold/add-square-svgrepo-com.svg</normaloff>:/golden/icons/gold/add-square-svgrepo-com.svg</iconset>
                                   </property>
                                   <property name="iconSize">
                                    <size>
@@ -1966,7 +2409,7 @@ QLabel{
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>890</width>
+     <width>970</width>
      <height>27</height>
     </rect>
    </property>
