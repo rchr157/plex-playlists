@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>970</width>
-    <height>630</height>
+    <height>693</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -47,6 +47,7 @@ QLabel{
 QGroupBox{
 	font-size: 23px;
 }
+
 #lbl_home_title, #lbl_plex_title, #lbl_spotify_title, #lbl_playlist_title, #lbl_settings_title{
 	font-size: 32px}
 
@@ -565,7 +566,7 @@ QGroupBox{
              <item>
               <widget class="QStackedWidget" name="stackedWidget">
                <property name="currentIndex">
-                <number>4</number>
+                <number>1</number>
                </property>
                <widget class="QWidget" name="page_home">
                 <layout class="QVBoxLayout" name="verticalLayout_20">
@@ -892,7 +893,7 @@ QGroupBox{
                         <bool>false</bool>
                        </property>
                        <property name="text">
-                        <string>Download</string>
+                        <string>M3U</string>
                        </property>
                        <property name="icon">
                         <iconset resource="resources.qrc">
@@ -932,11 +933,11 @@ QGroupBox{
                         <bool>false</bool>
                        </property>
                        <property name="text">
-                        <string>Replace</string>
+                        <string>Transfer</string>
                        </property>
                        <property name="icon">
                         <iconset resource="resources.qrc">
-                         <normaloff>:/light/icons/light/refresh-svgrepo-com.svg</normaloff>:/light/icons/light/refresh-svgrepo-com.svg</iconset>
+                         <normaloff>:/light/icons/light/spotify-svgrepo-com.svg</normaloff>:/light/icons/light/spotify-svgrepo-com.svg</iconset>
                        </property>
                        <property name="iconSize">
                         <size>
@@ -1164,7 +1165,7 @@ QGroupBox{
                             <bool>false</bool>
                            </property>
                            <property name="text">
-                            <string>Download</string>
+                            <string>M3U</string>
                            </property>
                            <property name="icon">
                             <iconset resource="resources.qrc">
@@ -1204,11 +1205,11 @@ QGroupBox{
                             <bool>false</bool>
                            </property>
                            <property name="text">
-                            <string>Replace</string>
+                            <string>Transfer</string>
                            </property>
                            <property name="icon">
                             <iconset resource="resources.qrc">
-                             <normaloff>:/light/icons/light/refresh-svgrepo-com.svg</normaloff>:/light/icons/light/refresh-svgrepo-com.svg</iconset>
+                             <normaloff>:/light/icons/light/plex-svgrepo-com.svg</normaloff>:/light/icons/light/plex-svgrepo-com.svg</iconset>
                            </property>
                            <property name="iconSize">
                             <size>
@@ -2023,104 +2024,132 @@ QGroupBox{
                          </property>
                          <layout class="QHBoxLayout" name="horizontalLayout_14">
                           <item>
-                           <layout class="QVBoxLayout" name="verticalLayout_32">
-                            <property name="spacing">
-                             <number>6</number>
-                            </property>
-                            <property name="topMargin">
-                             <number>5</number>
-                            </property>
-                            <property name="bottomMargin">
-                             <number>0</number>
-                            </property>
+                           <layout class="QHBoxLayout" name="horizontalLayout_22">
                             <item>
-                             <layout class="QVBoxLayout" name="verticalLayout_33">
+                             <layout class="QVBoxLayout" name="verticalLayout_32">
                               <property name="spacing">
-                               <number>0</number>
+                               <number>6</number>
+                              </property>
+                              <property name="topMargin">
+                               <number>5</number>
                               </property>
                               <property name="bottomMargin">
                                <number>0</number>
                               </property>
                               <item>
-                               <widget class="QLabel" name="lbl_spotify_clientid">
-                                <property name="text">
-                                 <string>Client ID</string>
+                               <layout class="QVBoxLayout" name="verticalLayout_33">
+                                <property name="spacing">
+                                 <number>0</number>
                                 </property>
-                               </widget>
+                                <property name="bottomMargin">
+                                 <number>0</number>
+                                </property>
+                                <item>
+                                 <widget class="QLabel" name="lbl_spotify_clientid">
+                                  <property name="text">
+                                   <string>Client ID</string>
+                                  </property>
+                                 </widget>
+                                </item>
+                                <item>
+                                 <widget class="QLineEdit" name="lned_spotify_clientid">
+                                  <property name="minimumSize">
+                                   <size>
+                                    <width>0</width>
+                                    <height>0</height>
+                                   </size>
+                                  </property>
+                                  <property name="maximumSize">
+                                   <size>
+                                    <width>250</width>
+                                    <height>16777215</height>
+                                   </size>
+                                  </property>
+                                 </widget>
+                                </item>
+                               </layout>
                               </item>
                               <item>
-                               <widget class="QLineEdit" name="lned_spotify_clientid">
-                                <property name="minimumSize">
-                                 <size>
-                                  <width>0</width>
-                                  <height>0</height>
-                                 </size>
+                               <layout class="QVBoxLayout" name="verticalLayout_34">
+                                <property name="spacing">
+                                 <number>0</number>
                                 </property>
-                                <property name="maximumSize">
-                                 <size>
-                                  <width>250</width>
-                                  <height>16777215</height>
-                                 </size>
-                                </property>
-                               </widget>
+                                <item>
+                                 <widget class="QLabel" name="lbl_spotify_secret">
+                                  <property name="text">
+                                   <string>Secret Key</string>
+                                  </property>
+                                 </widget>
+                                </item>
+                                <item>
+                                 <widget class="QLineEdit" name="lned_spotify_secret">
+                                  <property name="minimumSize">
+                                   <size>
+                                    <width>0</width>
+                                    <height>0</height>
+                                   </size>
+                                  </property>
+                                  <property name="maximumSize">
+                                   <size>
+                                    <width>250</width>
+                                    <height>16777215</height>
+                                   </size>
+                                  </property>
+                                  <property name="echoMode">
+                                   <enum>QLineEdit::Normal</enum>
+                                  </property>
+                                 </widget>
+                                </item>
+                               </layout>
+                              </item>
+                              <item>
+                               <layout class="QVBoxLayout" name="verticalLayout_38">
+                                <item>
+                                 <widget class="QLabel" name="lbl_spotify_redirect">
+                                  <property name="text">
+                                   <string>Redirect URI</string>
+                                  </property>
+                                 </widget>
+                                </item>
+                                <item>
+                                 <widget class="QLineEdit" name="lned_spotify_redirect">
+                                  <property name="minimumSize">
+                                   <size>
+                                    <width>0</width>
+                                    <height>0</height>
+                                   </size>
+                                  </property>
+                                  <property name="maximumSize">
+                                   <size>
+                                    <width>250</width>
+                                    <height>16777215</height>
+                                   </size>
+                                  </property>
+                                 </widget>
+                                </item>
+                               </layout>
                               </item>
                              </layout>
                             </item>
                             <item>
-                             <layout class="QVBoxLayout" name="verticalLayout_34">
-                              <property name="spacing">
-                               <number>0</number>
-                              </property>
+                             <layout class="QVBoxLayout" name="verticalLayout_36">
                               <item>
-                               <widget class="QLabel" name="lbl_spotify_secret">
+                               <widget class="QCheckBox" name="chkbx_spotify_public">
+                                <property name="cursor">
+                                 <cursorShape>PointingHandCursor</cursorShape>
+                                </property>
                                 <property name="text">
-                                 <string>Secret Key</string>
+                                 <string>Make Playlist Public</string>
                                 </property>
                                </widget>
                               </item>
                               <item>
-                               <widget class="QLineEdit" name="lned_spotify_secret">
-                                <property name="minimumSize">
-                                 <size>
-                                  <width>0</width>
-                                  <height>0</height>
-                                 </size>
+                               <widget class="QCheckBox" name="chkbx_spotify_collab">
+                                <property name="cursor">
+                                 <cursorShape>PointingHandCursor</cursorShape>
                                 </property>
-                                <property name="maximumSize">
-                                 <size>
-                                  <width>250</width>
-                                  <height>16777215</height>
-                                 </size>
-                                </property>
-                                <property name="echoMode">
-                                 <enum>QLineEdit::Normal</enum>
-                                </property>
-                               </widget>
-                              </item>
-                             </layout>
-                            </item>
-                            <item>
-                             <layout class="QVBoxLayout" name="verticalLayout_38">
-                              <item>
-                               <widget class="QLabel" name="lbl_spotify_redirect">
                                 <property name="text">
-                                 <string>Redirect URI</string>
-                                </property>
-                               </widget>
-                              </item>
-                              <item>
-                               <widget class="QLineEdit" name="lned_spotify_redirect">
-                                <property name="minimumSize">
-                                 <size>
-                                  <width>0</width>
-                                  <height>0</height>
-                                 </size>
-                                </property>
-                                <property name="maximumSize">
-                                 <size>
-                                  <width>250</width>
-                                  <height>16777215</height>
-                                 </size>
+                                 <string>Make Playlist Collaborative</string>
                                 </property>
                                </widget>
                               </item>
