@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>970</width>
-    <height>693</height>
+    <height>695</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@ QLineEdit{
 	color: white;
 	border-radius: 6px;
 	font-size: 14px;
-	height: 32;
+	height: 28;
 }
 QComboBox{
 	background-color: white;
@@ -109,10 +109,6 @@ QGroupBox{
 	padding: 10px 18px;
 }
 
-
-#lned_plex_server{
-	color: gray;
-}
 #chkbx_ignore_all{
 	font-size: 16px;
 }
@@ -566,7 +562,7 @@ QGroupBox{
              <item>
               <widget class="QStackedWidget" name="stackedWidget">
                <property name="currentIndex">
-                <number>1</number>
+                <number>4</number>
                </property>
                <widget class="QWidget" name="page_home">
                 <layout class="QVBoxLayout" name="verticalLayout_20">
@@ -1954,7 +1950,7 @@ QGroupBox{
                                  </size>
                                 </property>
                                 <property name="placeholderText">
-                                 <string>ex: http://192.168.0.2:32400</string>
+                                 <string/>
                                 </property>
                                </widget>
                               </item>
@@ -2124,6 +2120,12 @@ QGroupBox{
                                     <width>250</width>
                                     <height>16777215</height>
                                    </size>
+                                  </property>
+                                  <property name="toolTip">
+                                   <string extracomment="http://localhost/"/>
+                                  </property>
+                                  <property name="whatsThis">
+                                   <string/>
                                   </property>
                                  </widget>
                                 </item>
