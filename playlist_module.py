@@ -354,16 +354,14 @@ def spotify_search(sp, query: list):
             # remove parenthesis
             match = re.search(ptrn_paren, artist)
             artist.replace(match.group(), '')
-        if 'Various' in artist:
-            # Use album instead for various artist
-            result = sp.search(f"album: {query[1]} track: {query[2]}")
-        if re.search(ptrn_paren, track) is not None:
-            match = re.search(ptrn_paren, track)
-            track = track.replace(match.group(), '')
         result = sp.search(f"artist: {artist} track: {track}")
         if not result['tracks']['items']:
             # If still no results, try without 'artist:' and 'track:'
             result = sp.search(f"{artist} {track}")
+        if not result['tracks']['items']:
+            if 'Various' in artist:
+                # Use album instead for various artist
+                result = sp.search(f"album: {album} track: {track}")
     if not result['tracks']['items']:
         # if still no results, track might be unavailable in spotify
         return None
@@ -459,36 +457,47 @@ def compare_spotify_playlists(source: list, destination: list):
     return new_tracks, removed_tracks
 
 
-def plex_check_tracks(section, tracks):
+def plex_check_tracks(section, tracks, worker):
     found_tracks = []
     missing_tracks = []
-    for track in tracks:
+    for ind, track in enumerate(tracks):
+        val = int(100 * (ind/len(tracks)))
+        worker.progress_changed.emit(val)
         result = plex_search(section=section, query=track)
         if result is not None:
             found_tracks.append(result)
             logger.info(f"Track found: Artist: {track[0]} | Album: {track[1]} | Track: {track[2]}")
+            worker.msg_changed.emit(f"Track Available: {track[0]} - {track[2]}")
         else:
             missing_tracks.append(f"{track[0]} - {track[1]} - {track[2]}")
             logger.info(f"**********Track not found: "
                         f"Artist: {track[0]} | Album: {track[1]} | Track: {track[2]} **********")
-    logger.info(f"{len(found_tracks)} Tracks available on Plex. {len(missing_tracks)} tracks were not found in Plex.")
+            worker.msg_changed.emit(f"Track not found. Skipping: {track[0]} - {track[2]}")
+    msg = f"{len(found_tracks)} Tracks available on Plex. {len(missing_tracks)} tracks were not found in Plex."
+    logger.info(msg)
+    worker.msg_changed.emit(msg)
     return found_tracks, missing_tracks
 
 
-def spotify_check_tracks(sp, tracks: list):
+def spotify_check_tracks(sp, tracks: list, worker):
     found_tracks = []
     missing_tracks = []
-    for track in tracks:
+    for ind, track in enumerate(tracks):
+        val = int(100 * (ind / len(tracks)))
+        worker.progress_changed.emit(val)
         result = spotify_search(sp, track)
         if result is not None:
             found_tracks.append(result)
             logger.info(f"Track found: Artist: {track[0]} | Album: {track[1]} | Track: {track[2]}")
+            worker.msg_changed.emit(f"Track Available: {track[0]} - {track[2]}")
         else:
             missing_tracks.append(f"{track[0]} - {track[1]} - {track[2]}")
             logger.info(f"**********Track not found: "
                         f"Artist: {track[0]} | Album: {track[1]} | Track: {track[2]} **********")
-    logger.info(f"{len(found_tracks)} Tracks available on Spotify. "
-                f"{len(missing_tracks)} tracks were not found in Spotify.")
+            worker.msg_changed.emit(f"Track not found. Skipping: {track[0]} - {track[2]}")
+    msg = f"{len(found_tracks)} Tracks available on Spotify.{len(missing_tracks)} tracks were not found in Spotify."
+    logger.info(msg)
+    worker.msg_changed.emit(msg)
     return found_tracks, missing_tracks
 
 
@@ -595,25 +604,25 @@ def export_to_m3u(prepend, export_file, tracks, worker):
 
 
 def export_to_plex(section, destination: str, source_tracks: list, worker):
-    worker.progress_changed.emit(0)
+    worker.progress_changed.emit(10)
     worker.msg_changed.emit(f"Exporting {destination} playlist to Plex")
     # Check if playlist already exists or if it needs to be created
     available_playlists = plex_get_available_playlists(section)
     # Check if tracks are available on Plex
-    available_tracks, unavailable_tracks = plex_check_tracks(section=section, tracks=source_tracks)
+    available_tracks, unavailable_tracks = plex_check_tracks(section=section, tracks=source_tracks, worker=worker)
 
     if destination not in available_playlists:
         worker.msg_changed.emit(f"Creating New Playlist: {destination}")
-        worker.progress_changed.emit(10)
+        worker.progress_changed.emit(50)
         # if playlist does not exist, create it
-        logger.info(f"{destination} Playlist not found in Plex server, creating new playlist.")
+        logger.info(f"{destination} playlist not found in Plex server, creating new playlist.")
         plex_create_playlist(section=section, playlist_name=destination, items=available_tracks)
         worker.msg_changed.emit("Exporting Complete!")
         worker.progress_changed.emit(100)
         return available_tracks, None
 
     # If playlist already exists, compare items in playlist
-    msg = f"Comparing {destination} playlist for new and or removed items."
+    msg = f"Updating {destination} playlist for new and or removed items."
     logger.debug(msg)
     worker.msg_changed.emit(msg)
 
@@ -629,7 +638,7 @@ def export_to_plex(section, destination: str, source_tracks: list, worker):
     if not removed_tracks:
         plex_remove_from_playlist(section=section, playlist=destination, items=removed_tracks)
 
-    msg = f"{destination} Playlist on PLEX has been updated!"
+    msg = f"{destination} playlist on PLEX has been updated!"
     logger.info(msg)
     worker.msg_changed.emit(msg)
     worker.progress_changed.emit(100)
@@ -637,15 +646,16 @@ def export_to_plex(section, destination: str, source_tracks: list, worker):
 
 
 def export_to_spotify(sp, source_tracks: list, destination: str, worker):
-    worker.progress_changed.emit(0)
+    worker.progress_changed.emit(10)
     worker.msg_changed.emit(f"Exporting {destination} playlist to Spotify")
     available_playlists = spotify_get_available_playlists(sp)
     available_tracks, unavailable_tracks = spotify_check_tracks(sp,
-                                                                source_tracks)  # expects list for query, returns spotify track info
+                                                                source_tracks, worker=worker)  # expects list for
+    # query, returns spotify track info
 
     if destination not in available_playlists:
         worker.msg_changed.emit(f"Creating new playlist {destination}")
-        worker.progress_changed.emit(10)
+        worker.progress_changed.emit(50)
         # If playlist does not exist, create new playlist and add items
         logger.info(f"Playlist '{destination}' not found in Spotify account, creating new playlist.")
         new_playlist = spotify_create_playlist(sp, user=sp.me()['id'], playlist_name=destination)
@@ -657,10 +667,10 @@ def export_to_spotify(sp, source_tracks: list, destination: str, worker):
         return available_tracks, None
 
     # If playlist already exists, compare items in playlist
-    msg = f"Comparing {destination} playlist for new and or removed items."
+    msg = f"Updating {destination} playlist with new and removed items."
     logger.debug(msg)
     worker.msg_changed.emit(msg)
-    worker.progress_changed.emit(10)
+    worker.progress_changed.emit(50)
 
     destination_tracks = spotify_get_playlist_items(sp, available_playlists[destination])
     new_tracks, removed_tracks = compare_spotify_playlists(source=available_tracks, destination=destination_tracks)
@@ -677,7 +687,7 @@ def export_to_spotify(sp, source_tracks: list, destination: str, worker):
         spotify_remove_from_playlist(sp, playlist_uri=available_playlists[destination], items=removed_tracks)
         logger.info(f"Removing {len(removed_tracks)} to playlist {destination}")
 
-    msg = f"{destination} Playlist on Spotify has been updated!"
+    msg = f"{destination} playlist on Spotify has been updated!"
     logger.info(msg)
     worker.msg_changed.emit(msg)
     worker.progress_changed.emit(100)
