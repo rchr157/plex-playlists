@@ -1,14 +1,11 @@
 # import section
-import json
+import re
 import sys
 import os
 import logging
-import time
-import threading
 from plexapi.server import PlexServer
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-from contextlib import contextmanager
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QIcon
@@ -21,14 +18,13 @@ import playlist_module as pp
 
 # <editor-fold desc="############### General TODOs ###############"
 # TODO: Organize icons, rename files
-# TODO: Clean up logic for calling playlist module
-# TODO: Check plex server, and token input is correct
 # TODO: Highlight lineEdits and combobox during tutorial
-# TODO: Create custom window for pop ups
 # TODO: Optimize library section to prepend and directory
 # TODO: Allow user to view changes in local playlists vs plex playlists and pick and choose edits
-# TODO: Add Spotify functionality
-# TODO: Download and Upload playlists
+# TODO: Show list of tracks not available after transfer is complete
+# TODO: Handle single Plex Section,
+#  TODO: autoselect dropdown,
+#  TODO: create folder for section when exporting
 # </editor-fold>
 
 
@@ -72,7 +68,7 @@ class MainWindow(QMainWindow):
         self.spotify = None
         self.spotify_user = None
 
-        self.main_win = QMainWindow()
+        self.main_win = QMainWindow(None)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self.main_win)
 
@@ -80,13 +76,30 @@ class MainWindow(QMainWindow):
         # loadJsonStyle(self, self.ui)  # For future use
 
         self.ui.stackedWidget.setCurrentWidget(self.ui.page_home)
+        # Set custom attribute to get all items from combobox
+        setattr(self.ui.cmb_playlist_prepend, "allItems", lambda: [self.ui.cmb_playlist_prepend.itemText(i) for i in
+                                                                   range(self.ui.cmb_playlist_prepend.count())])
 
         # load variables
-        self.load_variables()
+        # self.load_variables()
+        self.settings_manager = SettingsManager()
+        self.settings_manager.settings_changed.connect(self.check_plex_connect_btn)
+        self.settings_manager.settings_changed.connect(self.check_spotify_connect_btn)
+        self.wmap = {
+            "plex_server": self.ui.lned_plex_server,
+            "plex_token": self.ui.lned_plex_token,
+            "playlist_directory": self.ui.lned_playlist_directory,
+            "export_directory": self.ui.lned_export_directory,
+            "prepends": self.ui.cmb_playlist_prepend,
+            "spotify_client_id": self.ui.lned_spotify_clientid,
+            "spotify_client_secret": self.ui.lned_spotify_secret,
+            "spotify_redirect_uri": self.ui.lned_spotify_redirect
+        }
+        self.load_settings()
 
         # Menus
-        self.ui.actionLoad_Settings.triggered.connect(lambda: self.load_json())
-        self.ui.actionSave_Settings.triggered.connect(lambda: self.save_json())
+        self.ui.actionLoad_Settings.triggered.connect(self.load_settings)
+        self.ui.actionSave_Settings.triggered.connect(self.save_settings)
 
         # Side Panel
         # handle page buttons
@@ -102,37 +115,39 @@ class MainWindow(QMainWindow):
 
         # Main Page
         # handle Tutorial checkbox
-        self.ui.btn_tutorial.clicked.connect(lambda: self.test_func())  # lambda: self.tutorial_btn_clicked()
+        self.ui.btn_tutorial.clicked.connect(self.tutorial_btn_clicked)  # self.test_func
 
         # Plex Page
         # handle plex buttons
-        self.ui.btn_plex_connect.clicked.connect(lambda: self.plex_connect())
-        self.ui.list_library_playlist.clicked.connect(lambda: self.update_plex_buttons())
-        self.ui.btn_plex_download.clicked.connect(lambda: self.plex_download())
-        self.ui.btn_plex_upload.clicked.connect(lambda: self.plex_upload())
-        self.ui.btn_plex_update.clicked.connect(lambda: self.plex_transfer())
+        self.ui.btn_plex_connect.clicked.connect(self.plex_connect)
+        self.ui.list_library_playlist.clicked.connect(self.update_plex_buttons)
+        self.ui.btn_plex_download.clicked.connect(self.plex_download)
+        self.ui.btn_plex_upload.clicked.connect(self.plex_upload)
+        self.ui.btn_plex_update.clicked.connect(self.plex_transfer)
 
         # Spotify Page
-        self.ui.btn_spotify_connect.clicked.connect(lambda: self.spotify_connect())
-        self.ui.list_spotify_playlist.clicked.connect(lambda: self.spotify_update_buttons())
-        self.ui.btn_spotify_download.clicked.connect(lambda: self.spotify_download())
-        self.ui.btn_spotify_upload.clicked.connect(lambda: self.spotify_upload())
-        self.ui.btn_spotify_update.clicked.connect(
-            lambda: self.spotify_transfer())  # TODO:combine update and upload functionality
+        self.ui.btn_spotify_connect.clicked.connect(self.spotify_connect)
+        self.ui.list_spotify_playlist.clicked.connect(self.spotify_update_buttons)
+        self.ui.btn_spotify_download.clicked.connect(self.spotify_download)
+        self.ui.btn_spotify_upload.clicked.connect(self.spotify_upload)
+        self.ui.btn_spotify_update.clicked.connect(self.spotify_transfer)
 
         # Playlist Page
-        self.ui.cmb_library_sections.currentTextChanged.connect(lambda: self.plex_update_playlists())
-        self.ui.btn_add_prepend.clicked.connect(lambda: self.add_prepend())
-        self.ui.btn_playlist_convert.clicked.connect(lambda: self.convert_playlists())
-        self.ui.btn_playlist_combine.clicked.connect(lambda: self.combine_playlists())
+        self.ui.cmb_library_sections.currentTextChanged.connect(self.plex_update_playlists)
+        self.ui.btn_add_prepend.clicked.connect(self.add_prepend)
+        self.ui.btn_playlist_convert.clicked.connect(self.convert_playlists)
+        self.ui.btn_playlist_combine.clicked.connect(self.combine_playlists)
 
         # Settings Page
         # handle buttons & link
-        self.ui.lned_plex_server.textChanged.connect(lambda: self.check_plex_connect_btn())
-        self.ui.lned_plex_token.textChanged.connect(lambda: self.check_plex_connect_btn())
-        self.ui.chkbx_ignore_all.toggled.connect(lambda: self.ignore_toggle())
-        self.ui.btn_playlist_directory.clicked.connect(lambda: self.browse_playlist_directory())
-        self.ui.btn_export_directory.clicked.connect(lambda: self.browse_export_directory())
+        self.ui.lned_plex_server.textChanged.connect(self.check_plex_connect_btn)
+        self.ui.lned_plex_token.textChanged.connect(self.check_plex_connect_btn)
+        self.ui.lned_spotify_clientid.textChanged.connect(self.check_spotify_connect_btn)
+        self.ui.lned_spotify_secret.textChanged.connect(self.check_spotify_connect_btn)
+        self.ui.lned_spotify_redirect.textChanged.connect(self.check_spotify_connect_btn)
+        self.ui.chkbx_ignore_all.toggled.connect(self.plex_update_playlists)
+        self.ui.btn_playlist_directory.clicked.connect(self.browse_playlist_directory)
+        self.ui.btn_export_directory.clicked.connect(self.browse_export_directory)
 
     def show(self):
         self.main_win.show()
@@ -148,7 +163,7 @@ class MainWindow(QMainWindow):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         options |= QFileDialog.DontUseCustomDirectoryIcons
-        dialog = QFileDialog()
+        dialog = QFileDialog(None)
         dialog.setOptions(options)
 
         dialog.setFilter(dialog.filter() | QtCore.QDir.Hidden)
@@ -183,7 +198,7 @@ class MainWindow(QMainWindow):
     # <editor-fold desc="############### General Functions ###############">
     def test_func(self):
         logger.debug("Creating Progress Bar Dialog box")
-        progressbar = ProgressBar(func='test_func', **{"file": "test_file.m3u", "section": "plex_section"})
+        ProgressBar(func='test_func', **{"file": "test_file.m3u", "section": "plex_section"})
         logger.debug("Executing progressbar function: plex_to_m3u()")
 
         # Let user know downloads are complete
@@ -193,7 +208,7 @@ class MainWindow(QMainWindow):
         msgtype = QMessageBox.Information
         # First Message
         message = "Your downloads are complete!"
-        msg = self.MessageBox(title, message, buttons, msgtype)
+        self.MessageBox(title, message, buttons, msgtype)
 
     def get_directories(self, playlist=False, export=False):
         playlist_directory = self.ui.lned_playlist_directory.text()
@@ -203,7 +218,7 @@ class MainWindow(QMainWindow):
             message = "Select a directory where you want your playlists to be saved at."
             btns = ['Ok']
             msgtype = QMessageBox.Information
-            msg = self.MessageBox(title=title, message=message, btns=btns, msgtype=msgtype)
+            self.MessageBox(title=title, message=message, btns=btns, msgtype=msgtype)
             export_directory = self.browse_export_directory()
             if not export_directory:
                 export_directory = None
@@ -212,18 +227,19 @@ class MainWindow(QMainWindow):
             message = "Select a directory where you want your playlists to be saved at."
             btns = ['Ok']
             msgtype = QMessageBox.Information
-            msg = self.MessageBox(title=title, message=message, btns=btns, msgtype=msgtype)
+            self.MessageBox(title=title, message=message, btns=btns, msgtype=msgtype)
             export_directory = self.browse_export_directory()
         return playlist_directory, export_directory
 
     def get_plex_selections(self):
         section = self.ui.cmb_library_sections.currentText()
-        # if section == "Select a Music Library":
-        #     title = "Select a music library"
-        #     message = "Before transferring playlist to plex, make sure you have a library selected"
-        #     btns = ['Ok']
-        #     msg = self.MessageBox(title=title, message=message, btns=btns, msgtype=None)
-        #     return
+        if section == "Select a Music Library":
+            logger.debug(f"No Plex Section selected. Canceling operation.")
+            title = "Plex Section Required"
+            message = "Before transferring playlist to plex, make sure you have a library selected"
+            btns = ['Ok']
+            self.MessageBox(title=title, message=message, btns=btns, msgtype=None)
+            return None, None
         logger.debug(f"Selected '{section}' Section")
         selected_section = self.plex.library.section(section)
         playlists = [item.text() for item in self.ui.list_library_playlist.selectedItems()]
@@ -245,66 +261,47 @@ class MainWindow(QMainWindow):
         return files
 
     # Save Settings to Json
-    def save_json(self):
-        cwd = os.path.dirname(os.path.abspath(__file__))
-        data = {}
-        data['plex_server'] = self.ui.lned_plex_server.text()
-        data['plex_token'] = self.ui.lned_plex_token.text()
-        data['playlist_directory'] = self.ui.lned_playlist_directory.text()
-        data['export_directory'] = self.ui.lned_export_directory.text()
-        data['prepends'] = [self.ui.cmb_playlist_prepend.itemText(i) for i in
-                            range(self.ui.cmb_playlist_prepend.count())]
-        data["spotify_client_id"] = self.ui.lned_spotify_clientid.text()
-        data["spotify_client_secret"] = self.ui.lned_spotify_secret.text()
-        data["spotify_redirect_uri"] = self.ui.lned_spotify_redirect.text()
-
-        with open(os.path.join(cwd, 'settings.json'), 'w') as output:
-            json.dump(data, output, indent=2, separators=(',', ': '))
-
+    def save_settings(self):
+        self.settings_manager.save_settings(self.wmap)
+        self.load_variables()
         # Let user know Saving data is complete
         title = "Saving Complete!"
         buttons = ['Ok']
         msgtype = QMessageBox.Information
         # First Message
         message = "Your settings have been saved!"
-        msg = self.MessageBox(title, message, buttons, msgtype)
+        self.MessageBox(title, message, buttons, msgtype)
 
-    def load_json(self):
-        # if self.variables['plex_server'] == '':
-        # Ask user to select file to load variables
-        fmt_filter = ("JSON Files (*.json)", "All Files (*)")
-        file = self.FileDialog(directory=basedir, fmt=fmt_filter)
-        if file:
-            self.load_variables(file[0])
-            return
+    def load_settings(self):
+        self.settings_manager.load_settings(self.wmap)
+        self.load_variables()
+        self.check_plex_connect_btn()
+        self.check_spotify_connect_btn()
 
-        # Let user know Saving data is complete
-        title = "Loading Complete!"
-        buttons = ['Ok']
-        msgtype = QMessageBox.Information
-        # First Message
-        message = "Your settings have been loaded!"
-        msg = self.MessageBox(title, message, buttons, msgtype)
+    def load_variables(self):
+        self.variables = {
+            "plex_server": self.ui.lned_plex_server.text(),
+            "plex_token": self.ui.lned_plex_token.text(),
+            "playlist_directory": self.ui.lned_playlist_directory.text(),
+            "export_directory": self.ui.lned_export_directory.text(),
+            "prepends": [self.ui.cmb_playlist_prepend.itemText(i) for i in
+                         range(self.ui.cmb_playlist_prepend.count())] if self.ui.cmb_playlist_prepend.count() > 0
+            else ["../"],
+            "spotify_client_id": self.ui.lned_spotify_clientid.text(),
+            "spotify_client_secret": self.ui.lned_spotify_secret.text(),
+            "spotify_redirect_uri": self.ui.lned_spotify_redirect.text()
+        }
 
-    def load_variables(self, file=None):
-        self.variables = pp.load_variables(file)
-        if self.variables:
-            # Playlist page
-            self.ui.cmb_playlist_prepend.addItems(self.variables["prepends"])
-            # Settings Page
-            self.ui.lned_plex_server.setText(self.variables["plex_server"])
-            self.change_button_ui(self.ui.lned_plex_server, stylesheet="color: white;")
-            self.ui.lned_plex_token.setText(self.variables["plex_token"])
-            self.ui.lned_playlist_directory.setText(self.variables["playlist_directory"])
-            self.ui.lned_export_directory.setText(self.variables["export_directory"])
-            self.ui.lned_spotify_clientid.setText(self.variables["spotify_client_id"])
-            self.ui.lned_spotify_secret.setText(self.variables["spotify_client_secret"])
-            self.ui.lned_spotify_redirect.setText(self.variables["spotify_redirect_uri"])
-
-            self.check_plex_connect_btn()
-            self.check_spotify_connect_btn()
-        else:
-            self.variables = None
+    def reset_settings(self):
+        self.ui.lned_plex_server.setText("")
+        self.ui.lned_plex_token.setText("")
+        self.ui.lned_playlist_directory.setText("")
+        self.ui.lned_export_directory.setText("")
+        for i in range(self.ui.cmb_playlist_prepend.count()):
+            self.ui.cmb_playlist_prepend.removeItem(i)
+        self.ui.lned_spotify_clientid.setText("")
+        self.ui.lned_spotify_secret.setText("")
+        self.ui.lned_spotify_redirect.setText("")
 
     # Side Panel functions
     def page_clicked(self, page, btn):
@@ -332,15 +329,43 @@ class MainWindow(QMainWindow):
                                       stylesheet="background-color: #1B1B1B; border-color: #1B1B1B; color: #BABABA;",
                                       icon=icons[button][1])
 
+    @QtCore.pyqtSlot()
     def check_plex_connect_btn(self):
         logger.debug("Checking conditions to enable Plex Connect button.")
+        srv_pattern = "https?:\/\/[0-9a-z.?]{2,256}:32400"
+        tkn_pattern = "[0-9a-zA-Z-]{20}"
+
         # Grab plex server url and token to connect
         plex_server = self.ui.lned_plex_server.text()
         plex_token = self.ui.lned_plex_token.text()
-        if plex_server and plex_token:
+
+        check_server = re.match(srv_pattern, plex_server)
+        check_token = re.match(tkn_pattern, plex_token)
+
+        # Check for correct format for plex server
+        if check_server is None:
+            logger.debug("Plex Server address is not in correct format")
+            self.change_button_ui(btn=self.ui.lned_plex_server, enable=True,
+                                  stylesheet="Border: 2px solid red; color: rgb(246, 97, 81);")
+        else:
+            logger.debug("Plex Server address is in correct format")
+            self.change_button_ui(btn=self.ui.lned_plex_server, enable=True, stylesheet="color: white;")
+
+        # Check for correct format for plex token
+        if check_token is None:
+            logger.debug("Plex Server Token is not in correct format")
+            self.change_button_ui(btn=self.ui.lned_plex_token, enable=True,
+                                  stylesheet="Border: 2px solid red; color: rgb(246, 97, 81);")
+        else:
+            logger.debug("Plex Server address is in correct format")
+            self.change_button_ui(btn=self.ui.lned_plex_token, enable=True, stylesheet="color: white;")
+
+        # Check all conditions are met to enable connect button for Plex
+        if plex_server and plex_token and check_server is not None and check_token is not None:
             logger.debug("All necessary Plex API details have been provided. Enabling Connect button.")
             self.change_button_ui(btn=self.ui.btn_plex_connect, enable=True,
                                   stylesheet="Background-color: Green; color: rgb(255, 255, 255)")
+            self.change_button_ui(btn=self.ui.lned_plex_server, enable=True, stylesheet="color: white;")
         else:
             logger.debug("One or more Plex API details missing. Disabling Connect button.")
             self.change_button_ui(btn=self.ui.btn_plex_connect, enable=False, stylesheet="")
@@ -414,8 +439,7 @@ class MainWindow(QMainWindow):
 
         # self.ui.menuFile.window()
         message = (
-            "You can save any changes made in this application. A 'settings.json' is generated whenever you save."
-            "\n\nYou can also load any changes made manually in the json file as well.")
+            "You can save any changes made in this application.")
         msg = self.MessageBox(title, message, buttons, msgtype)
         if msg == QDialog.Rejected:
             return
@@ -481,7 +505,7 @@ class MainWindow(QMainWindow):
         available_sections = [section.title for section in self.plex.library.sections() if
                               section.CONTENT_TYPE == 'audio']
         self.ui.cmb_library_sections.clear()
-        # self.update_plex_buttons()
+
         if available_sections:
             logger.debug("Adding Plex Library sections to dropdown menu.")
             self.ui.cmb_library_sections.addItem('Select a Music Library')
@@ -555,7 +579,7 @@ class MainWindow(QMainWindow):
         # First Message
         message = "Your uploads are complete!"
         detail = "\n".join(files)
-        msg = self.MessageBox(title, message, buttons, msgtype, details=detail)
+        self.MessageBox(title, message, buttons, msgtype, details=detail)
 
     def plex_download(self):
         # TODO: Refactor plex_download function
@@ -572,9 +596,7 @@ class MainWindow(QMainWindow):
         for name in selected_playlists:
             # TODO: Check if file already exists if it needs to be overwritten or cancel operation
             file = os.path.join(plex_directory, f"{name}.m3u")
-            # TODO: handle condition where file already exists, overwrite or cancel
             logger.debug(f"Downloading '{name}' playlist from Plex as m3u.")
-            # pp.plex_to_m3u(section=selected_section, file=file)
             logger.debug("Creating Progress Bar Dialog box")
             ProgressBar(func='plex_to_m3u', **{"section": selected_section, "file": file})
             logger.info(f"Plex playlist '{name}' downloaded to {file}.")
@@ -586,7 +608,7 @@ class MainWindow(QMainWindow):
         msgtype = QMessageBox.Information
         # First Message
         message = "Your downloads are complete!"
-        msg = self.MessageBox(title, message, buttons, msgtype)
+        self.MessageBox(title, message, buttons, msgtype)
 
     def plex_transfer(self):
         # TODO: Refactor plex_update function
@@ -615,19 +637,58 @@ class MainWindow(QMainWindow):
         btns = ['Ok']
         msgtype = QMessageBox.Information
         detail = "\n".join(selected_playlists)
-        msg = self.MessageBox(title, message, btns, msgtype, details=detail)
+        self.MessageBox(title, message, btns, msgtype, details=detail)
 
     # </editor-fold>
 
     # <editor-fold desc="############### Spotify Page Functions ###############">
     # Spotify Functions
     def check_spotify_connect_btn(self):
+        id_pattern = "[0-9a-z]{32}"
+        sec_pattern = "[0-9a-z]{32}"
+        redir_pattern = "https?:\/\/[0-9a-z.?]{2,256}:[0-9]{2,5}"
+
         # Grab plex server url and token to connect
         logger.debug("Checking conditions to enable Spotify Connect button.")
         spotify_clientid = self.ui.lned_spotify_clientid.text()
         spotify_secret = self.ui.lned_spotify_secret.text()
         spotify_redirect = self.ui.lned_spotify_redirect.text()
-        if spotify_clientid and spotify_redirect and spotify_secret:
+
+        # Check pattern matches
+        check_id = re.match(id_pattern, spotify_clientid)
+        check_sec = re.match(sec_pattern, spotify_secret)
+        check_redir = re.match(redir_pattern, spotify_redirect)
+
+        # Check client id
+        if check_id is None:
+            logger.debug("Client ID not in correct format")
+            self.change_button_ui(btn=self.ui.lned_spotify_clientid, enable=True,
+                                  stylesheet="Border: 2px solid red; color: rgb(246, 97, 81);")
+        else:
+            logger.debug("Client ID in correct format")
+            self.change_button_ui(btn=self.ui.lned_spotify_clientid, enable=True, stylesheet="color: white;")
+
+        # Check client secret
+        if check_sec is None:
+            logger.debug("Client Secret not in correct format")
+            self.change_button_ui(btn=self.ui.lned_spotify_secret, enable=True,
+                                  stylesheet="Border: 2px solid red; color: rgb(246, 97, 81);")
+        else:
+            logger.debug("Client Secret in correct format")
+            self.change_button_ui(btn=self.ui.lned_spotify_secret, enable=True, stylesheet="color: white;")
+
+        # Check redirect uri
+        if check_redir is None:
+            logger.debug("Redirect URI not in correct format")
+            self.change_button_ui(btn=self.ui.lned_spotify_redirect, enable=True,
+                                  stylesheet="Border: 2px solid red; color: rgb(246, 97, 81);")
+        else:
+            logger.debug("Reidrect URI in correct format")
+            self.change_button_ui(btn=self.ui.lned_spotify_redirect, enable=True, stylesheet="color: white;")
+
+        # Check all conditions are met to enable connect button
+        if spotify_clientid and spotify_redirect and spotify_secret and check_id is not None and check_sec is not None \
+                and check_redir is not None:
             logger.debug("All necessary Spotify API details have been provided. Enabling Connect button.")
             self.change_button_ui(btn=self.ui.btn_spotify_connect, enable=True,
                                   stylesheet="Background-color: Green; color: rgb(255, 255, 255)")
@@ -745,7 +806,7 @@ class MainWindow(QMainWindow):
         msgtype = QMessageBox.Information
         # First Message
         message = "Your downloads are complete!"
-        msg = self.MessageBox(title, message, buttons, msgtype)
+        self.MessageBox(title, message, buttons, msgtype)
 
     def spotify_upload(self):
         # TODO: Refactor spotify_upload function
@@ -753,7 +814,8 @@ class MainWindow(QMainWindow):
         # Ask user to select files
         logger.debug("Asking user to select files to upload.")
         files = self.get_files()
-        if files is None: return
+        if files is None:
+            return
 
         logger.info(f"{len(files)} Files selected.")
 
@@ -770,11 +832,11 @@ class MainWindow(QMainWindow):
 
         # Let user know uploading is complete
         title = "Upload Complete"
-        message = ("Upload Complete!")
+        message = "Upload Complete!"
         btns = ['Ok']
         msgtype = QMessageBox.Warning
         # detail = "\n".join(failed)
-        msg = self.MessageBox(title=title, message=message, btns=btns, msgtype=msgtype)
+        self.MessageBox(title=title, message=message, btns=btns, msgtype=msgtype)
 
     def spotify_transfer(self):
         # TODO: Refactor plex_update function
@@ -784,6 +846,10 @@ class MainWindow(QMainWindow):
         # Get spotify details
         logger.debug("Getting selected Plex Section")
         selected_section, _ = self.get_plex_selections()
+        if selected_section is None:
+            # If no plex section selected, return
+            self.page_clicked(self.ui.page_plex, self.ui.btn_plex_page)
+            return
 
         logger.debug("Getting selected Spotify Playlists")
         selected_playlists = self.get_spotify_selections()
@@ -807,7 +873,7 @@ class MainWindow(QMainWindow):
         btns = ['Ok']
         msgtype = QMessageBox.Information
         detail = "\n".join(selected_playlists)
-        msg = self.MessageBox(title, message, btns, msgtype, details=detail)
+        self.MessageBox(title, message, btns, msgtype, details=detail)
 
     # </editor-fold>
 
@@ -831,7 +897,7 @@ class MainWindow(QMainWindow):
         msgtype = QMessageBox.Information
         # First Message
         message = "Your playlists are ready!"
-        msg = self.MessageBox(title, message, buttons, msgtype)
+        self.MessageBox(title, message, buttons, msgtype)
 
     def combine_playlists(self):
         # TODO: Refactor combine_playlists function
@@ -857,7 +923,7 @@ class MainWindow(QMainWindow):
         msgtype = QMessageBox.Information
         # First Message
         message = "The combined playlist is ready!"
-        msg = self.MessageBox(title, message, buttons, msgtype)
+        self.MessageBox(title, message, buttons, msgtype)
 
     # </editor-fold>
 
@@ -923,6 +989,7 @@ class MessageDialog(QDialog):
         self.dlg_ui.btn_dlg_ok.clicked.connect(self.accept)
         self.dlg_ui.btn_dlg_cancel.clicked.connect(self.reject)
 
+        self.clickPosition = None
         self.center()
         self.dlg_ui.frame.mouseMoveEvent = self.move_window
 
@@ -937,7 +1004,6 @@ class MessageDialog(QDialog):
     def center(self):
         screen = QtGui.QGuiApplication.screenAt(QtGui.QCursor().pos())
         qr = self.frameGeometry()
-        # cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(screen.geometry().center())
         self.move(qr.topLeft())
 
@@ -962,7 +1028,7 @@ class ProgressBar(MessageDialog):
         self.dlg_ui.setupUi(self)
 
         # Connect Cancel Button
-        self.dlg_ui.btn_progress_cancel.clicked.connect(self.close_window)
+        self.dlg_ui.btn_progress_cancel.clicked.connect(self.close)
 
         # Save parameters
         self.func = func
@@ -994,19 +1060,9 @@ class ProgressBar(MessageDialog):
 
     @QtCore.pyqtSlot()
     def finished_task(self):
-        self.close_window()
-
-    def show_window(self):
-        # TODO: Delete this
-        self.show()
-        self.run_func()
-
-    def close_window(self):
-        # TODO: Delete This
         self.close()
 
     def run_func(self):
-
 
         # Move worker to thread
         logger.debug("Moving worker to thread)")
@@ -1055,7 +1111,7 @@ class Worker(QtCore.QObject):
 
         self.kwargs = kwargs
 
-    #TODO: Make functions more Robust (split into import and export)
+    # TODO: Make functions more Robust (split into import and export)
     def m3u_to_plex(self):
         self.msg_changed.emit("Transferring M3u to Plex")
         section = self.kwargs["section"]
@@ -1126,6 +1182,47 @@ class Worker(QtCore.QObject):
         pp.test_import_func(worker=self)
         self.finished.emit()
         logger.debug("function complete")
+
+
+class SettingsManager(QtCore.QObject):
+    settings_changed = QtCore.pyqtSignal()
+
+    # Class: (getters, setters)
+    widget_mappers = {
+        'QCheckBox': ('checkState', 'setCheckState'),
+        'QLineEdit': ('text', 'setText'),
+        'QSpinBox': ('value', 'setValue'),
+        'QRadioButton': ('isChecked', 'setChecked'),
+        'QComboBox': ('allItems', 'addItems')
+    }
+
+    def __init__(self):
+        super().__init__()
+
+        self.settings = QtCore.QSettings("Plex-Playlists", "settings")
+
+    def load_settings(self, wmap):
+        for name, widget in wmap.items():
+            cls = widget.__class__.__name__
+            getter, setter = self.widget_mappers.get(cls, (None, None))
+            value = self.settings.value(name)
+            logger.debug(f"loading: {getter}, {setter}, {value}")
+            if setter and value is not None:
+                fn = getattr(widget, setter)
+                fn(value)
+
+    def save_settings(self, wmap):
+        for name, widget in wmap.items():
+            cls = widget.__class__.__name__
+            getter, setter = self.widget_mappers.get(cls, (None, None))
+            logger.debug(f"Saving: {getter}, {setter}")
+            if getter:
+                fn = getattr(widget, getter)
+                value = fn()
+                logger.debug(f"--value: {value}")
+                if value is not None:
+                    self.settings.setValue(name, value)
+        self.settings_changed.emit()
 
 
 if __name__ == "__main__":

@@ -28,23 +28,6 @@ logger.addHandler(stream_handler)
 multidisc = ["CD1", "CD2", "Disc1", "Disc2"]
 
 
-# <editor-fold desc="############### General Functions ###############">
-# Function to load variables from json file
-def load_variables(varfile=None):
-    if varfile is None:
-        cwd = os.path.dirname(os.path.abspath(__file__))
-        varfile = os.path.join(cwd, 'settings.json')
-    if os.path.exists(varfile):
-        logger.debug(f"Loading file: {varfile}")
-        file = open(varfile)
-        variables = json.load(file)
-        logger.info(f"Settings file successfully loaded.")
-        return variables
-
-
-# </editor-fold>
-
-
 # <editor-folding desc="############### Playlist Functions ###############">
 # Function to handle prepend changes while exporting playlist
 def read_from_file(file: str):
@@ -270,7 +253,6 @@ def plex_get_available_playlists(section: plexapi.library.MusicSection):
 
 
 def plex_get_playlist_items(playlist: plexapi.playlist.Playlist):
-    # TODO: Consider DELETING
     return playlist.items()
 
 
@@ -583,7 +565,6 @@ def import_from_spotify(sp, playlist: str, worker):
 
 # <editor-fold desc="############### Export Functions ###############">
 def add_location(prepend, tracks):
-    # TODO: figure out where to add path
     for track in tracks:
         track.append(os.path.join(prepend, track[0], track[1], f"{track[3]} - {track[2]}.mp3"))
     return tracks
