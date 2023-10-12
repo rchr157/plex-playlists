@@ -85,7 +85,7 @@ QGroupBox{
 	width: 104px;
 	padding: 10px 18px;
 }
-#btn_plex_connect, #btn_spotify_connect, #btn_reset_settings{ 
+#btn_plex_connect, #btn_spotify_connect, #btn_save_settings, #btn_reset_settings{ 
 	background-color: #51391B;
 	color: #BABABA;
 	border-radius: 20px;
@@ -1847,19 +1847,6 @@ QGroupBox{
                       </property>
                      </widget>
                     </item>
-                    <item>
-                     <widget class="QPushButton" name="btn_reset_settings">
-                      <property name="maximumSize">
-                       <size>
-                        <width>150</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string>Reset Settings</string>
-                      </property>
-                     </widget>
-                    </item>
                    </layout>
                   </widget>
                  </item>
@@ -2361,6 +2348,39 @@ QGroupBox{
                       </layout>
                      </widget>
                     </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_23">
+                      <property name="spacing">
+                       <number>0</number>
+                      </property>
+                      <property name="leftMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>0</number>
+                      </property>
+                      <item alignment="Qt::AlignHCenter">
+                       <widget class="QPushButton" name="btn_save_settings">
+                        <property name="text">
+                         <string>Save</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item alignment="Qt::AlignHCenter">
+                       <widget class="QPushButton" name="btn_reset_settings">
+                        <property name="maximumSize">
+                         <size>
+                          <width>150</width>
+                          <height>16777215</height>
+                         </size>
+                        </property>
+                        <property name="text">
+                         <string>Reset Settings</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
                    </layout>
                   </widget>
                  </item>
@@ -2463,7 +2483,7 @@ QGroupBox{
      <string>File</string>
     </property>
     <addaction name="actionLoad_Settings"/>
-    <addaction name="actionSave_Settings"/>
+    <addaction name="actionExport_Settings"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -2474,9 +2494,9 @@ QGroupBox{
     <string>Load Settings</string>
    </property>
   </action>
-  <action name="actionSave_Settings">
+  <action name="actionExport_Settings">
    <property name="text">
-    <string>Save Settings</string>
+    <string>Export Settings</string>
    </property>
   </action>
   <action name="actionExit">

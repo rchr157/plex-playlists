@@ -1,4 +1,5 @@
 # import section
+import json
 import re
 import sys
 import os
@@ -99,7 +100,7 @@ class MainWindow(QMainWindow):
 
         # Menus
         self.ui.actionLoad_Settings.triggered.connect(self.load_settings_from_file)
-        self.ui.actionSave_Settings.triggered.connect(self.save_settings)
+        self.ui.actionExport_Settings.triggered.connect(self.export_settings)
 
         # Side Panel
         # handle page buttons
@@ -149,6 +150,7 @@ class MainWindow(QMainWindow):
         self.ui.btn_playlist_directory.clicked.connect(self.browse_playlist_directory)
         self.ui.btn_export_directory.clicked.connect(self.browse_export_directory)
         self.ui.btn_reset_settings.clicked.connect(self.reset_settings)
+        self.ui.btn_save_settings.clicked.connect(self.save_settings)
 
     def show(self):
         self.main_win.show()
@@ -263,8 +265,8 @@ class MainWindow(QMainWindow):
 
     # Save Settings to Json
     def save_settings(self):
+        # Save current
         self.settings_manager.save_settings(self.wmap)
-        self.load_variables()
         # Let user know Saving data is complete
         title = "Saving Complete!"
         buttons = ['Ok']
@@ -273,40 +275,51 @@ class MainWindow(QMainWindow):
         message = "Your settings have been saved!"
         self.MessageBox(title, message, buttons, msgtype)
 
+    def export_settings(self):
+        save_directory = self.FileDialog(is_folder=True)
+        if save_directory == "":
+            return
+        data = {
+                "plex_server": self.ui.lned_plex_server.text(),
+                "plex_token": self.ui.lned_plex_token.text(),
+                "playlist_directory": self.ui.lned_playlist_directory.text(),
+                "export_directory": self.ui.lned_export_directory.text(),
+                "prepends": [self.ui.cmb_playlist_prepend.itemText(i) for i in
+                            range(self.ui.cmb_playlist_prepend.count())],
+                "spotify_client_id": self.ui.lned_spotify_clientid.text(),
+                "spotify_client_secret": self.ui.lned_spotify_secret.text(),
+                "spotify_redirect_uri": self.ui.lned_spotify_redirect.text()
+        }
+
+        with open(os.path.join(save_directory[0], 'settings.json'), 'w') as output:
+            json.dump(data, output, indent=2, separators=(',', ': '))
+
+            # Let user know Saving data is complete
+            title = "Saving Complete!"
+            buttons = ['Ok']
+            msgtype = QMessageBox.Information
+            # First Message
+            message = "Your settings have been saved!"
+            self.MessageBox(title, message, buttons, msgtype)
+
     def load_settings(self):
+
         self.settings_manager.load_settings(self.wmap)
-        self.load_variables()
+        self.variables = self.settings_manager.save_to_variables(self.wmap)
         self.check_plex_connect_btn()
         self.check_spotify_connect_btn()
 
-    def load_variables(self):
-        self.variables = {
-            "plex_server": self.ui.lned_plex_server.text(),
-            "plex_token": self.ui.lned_plex_token.text(),
-            "playlist_directory": self.ui.lned_playlist_directory.text(),
-            "export_directory": self.ui.lned_export_directory.text(),
-            "prepends": [self.ui.cmb_playlist_prepend.itemText(i) for i in
-                         range(self.ui.cmb_playlist_prepend.count())] if self.ui.cmb_playlist_prepend.count() > 0
-            else ["../"],
-            "spotify_client_id": self.ui.lned_spotify_clientid.text(),
-            "spotify_client_secret": self.ui.lned_spotify_secret.text(),
-            "spotify_redirect_uri": self.ui.lned_spotify_redirect.text()
-        }
-
     def load_settings_from_file(self):
+        # Ask user for file
         file = self.FileDialog(fmt=("Json Files (*.json)", "All Files (*)"))
+        if file == "":
+            return
+        # Reset settings
+        self.reset_settings()
+        # Extract settings from file
         self.variables = pp.load_variables(file[0])
-        self.settings_from_variable()
-
-    def settings_from_variable(self):
-        self.ui.lned_plex_server.setText(self.variables["plex_server"])
-        self.ui.lned_plex_token.setText(self.variables["plex_token"])
-        self.ui.lned_playlist_directory.setText(self.variables["playlist_directory"])
-        self.ui.lned_export_directory.setText(self.variables["export_directory"])
-        self.ui.cmb_playlist_prepend.addItems(self.variables["prepends"])
-        self.ui.lned_spotify_clientid.setText(self.variables["spotify_client_id"])
-        self.ui.lned_spotify_secret.setText(self.variables["spotify_client_secret"])
-        self.ui.lned_spotify_redirect.setText(self.variables["spotify_redirect_uri"])
+        # Set values for settings
+        self.settings_manager.load_from_variable(wmap=self.wmap, variables=self.variables)
 
     def reset_settings(self):
         self.ui.lned_plex_server.setText("")
@@ -1226,6 +1239,17 @@ class SettingsManager(QtCore.QObject):
                 fn = getattr(widget, setter)
                 fn(value)
 
+    def load_from_variable(self, wmap, variables):
+        for name, widget in wmap.items():
+            cls = widget.__class__.__name__
+            getter, setter = self.widget_mappers.get(cls, (None, None))
+            value = variables[name]
+            logger.debug(f"loading: {getter}, {setter}, {value}")
+            if setter and value is not None:
+                fn = getattr(widget, setter)
+                fn(value)
+        self.save_to_variables(wmap)
+
     def save_settings(self, wmap):
         for name, widget in wmap.items():
             cls = widget.__class__.__name__
@@ -1238,6 +1262,21 @@ class SettingsManager(QtCore.QObject):
                 if value is not None:
                     self.settings.setValue(name, value)
         self.settings_changed.emit()
+
+    def save_to_variables(self, wmap):
+        variables = {}
+        for name, widget in wmap.items():
+            cls = widget.__class__.__name__
+            getter, setter = self.widget_mappers.get(cls, (None, None))
+            logger.debug(f"Saving: {getter}, {setter}")
+            if getter:
+                fn = getattr(widget, getter)
+                value = fn()
+                logger.debug(f"--value: {value}")
+                if value is not None:
+                    variables[name] = value
+        self.settings_changed.emit()
+        return variables
 
 
 if __name__ == "__main__":

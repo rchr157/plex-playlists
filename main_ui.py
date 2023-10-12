@@ -86,7 +86,7 @@ class Ui_MainWindow(object):
 "    width: 104px;\n"
 "    padding: 10px 18px;\n"
 "}\n"
-"#btn_plex_connect, #btn_spotify_connect, #btn_reset_settings{ \n"
+"#btn_plex_connect, #btn_spotify_connect, #btn_save_settings, #btn_reset_settings{ \n"
 "    background-color: #51391B;\n"
 "    color: #BABABA;\n"
 "    border-radius: 20px;\n"
@@ -795,10 +795,6 @@ class Ui_MainWindow(object):
         self.lbl_settings_title.setFont(font)
         self.lbl_settings_title.setObjectName("lbl_settings_title")
         self.horizontalLayout_12.addWidget(self.lbl_settings_title, 0, QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
-        self.btn_reset_settings = QtWidgets.QPushButton(self.frame_settings_title)
-        self.btn_reset_settings.setMaximumSize(QtCore.QSize(150, 16777215))
-        self.btn_reset_settings.setObjectName("btn_reset_settings")
-        self.horizontalLayout_12.addWidget(self.btn_reset_settings)
         self.verticalLayout_25.addWidget(self.frame_settings_title, 0, QtCore.Qt.AlignTop)
         self.frame_settings_body = QtWidgets.QWidget(self.page_settings)
         self.frame_settings_body.setObjectName("frame_settings_body")
@@ -1012,6 +1008,18 @@ class Ui_MainWindow(object):
         self.verticalLayout_18.addLayout(self.verticalLayout_9)
         self.verticalLayout_19.addWidget(self.grpbox_playlist_settings)
         self.verticalLayout_24.addWidget(self.frame_6)
+        self.horizontalLayout_23 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_23.setContentsMargins(0, -1, 0, -1)
+        self.horizontalLayout_23.setSpacing(0)
+        self.horizontalLayout_23.setObjectName("horizontalLayout_23")
+        self.btn_save_settings = QtWidgets.QPushButton(self.frame_settings_body)
+        self.btn_save_settings.setObjectName("btn_save_settings")
+        self.horizontalLayout_23.addWidget(self.btn_save_settings, 0, QtCore.Qt.AlignHCenter)
+        self.btn_reset_settings = QtWidgets.QPushButton(self.frame_settings_body)
+        self.btn_reset_settings.setMaximumSize(QtCore.QSize(150, 16777215))
+        self.btn_reset_settings.setObjectName("btn_reset_settings")
+        self.horizontalLayout_23.addWidget(self.btn_reset_settings, 0, QtCore.Qt.AlignHCenter)
+        self.verticalLayout_24.addLayout(self.horizontalLayout_23)
         self.verticalLayout_25.addWidget(self.frame_settings_body, 0, QtCore.Qt.AlignTop)
         self.stackedWidget.addWidget(self.page_settings)
         self.verticalLayout.addWidget(self.stackedWidget)
@@ -1050,12 +1058,12 @@ class Ui_MainWindow(object):
         MainWindow.setMenuBar(self.menubar)
         self.actionLoad_Settings = QtWidgets.QAction(MainWindow)
         self.actionLoad_Settings.setObjectName("actionLoad_Settings")
-        self.actionSave_Settings = QtWidgets.QAction(MainWindow)
-        self.actionSave_Settings.setObjectName("actionSave_Settings")
+        self.actionExport_Settings = QtWidgets.QAction(MainWindow)
+        self.actionExport_Settings.setObjectName("actionExport_Settings")
         self.actionExit = QtWidgets.QAction(MainWindow)
         self.actionExit.setObjectName("actionExit")
         self.menuFile.addAction(self.actionLoad_Settings)
-        self.menuFile.addAction(self.actionSave_Settings)
+        self.menuFile.addAction(self.actionExport_Settings)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
         self.menubar.addAction(self.menuFile.menuAction())
@@ -1106,7 +1114,6 @@ class Ui_MainWindow(object):
         self.btn_playlist_convert.setText(_translate("MainWindow", "Convert"))
         self.btn_playlist_combine.setText(_translate("MainWindow", "Combine"))
         self.lbl_settings_title.setText(_translate("MainWindow", "Settings"))
-        self.btn_reset_settings.setText(_translate("MainWindow", "Reset Settings"))
         self.grpbox_plex_settings.setTitle(_translate("MainWindow", "Plex Settings"))
         self.lbl_plex_server.setText(_translate("MainWindow", "Plex Server"))
         self.lbl_plex_token.setText(_translate("MainWindow", "Plex Token"))
@@ -1121,8 +1128,10 @@ class Ui_MainWindow(object):
         self.lbl_playlist_directory.setText(_translate("MainWindow", "Playlist Directory"))
         self.lbl_export_directory.setText(_translate("MainWindow", "Export Directory"))
         self.lbl_section_directory.setText(_translate("MainWindow", "Library Section Directory"))
+        self.btn_save_settings.setText(_translate("MainWindow", "Save"))
+        self.btn_reset_settings.setText(_translate("MainWindow", "Reset Settings"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.actionLoad_Settings.setText(_translate("MainWindow", "Load Settings"))
-        self.actionSave_Settings.setText(_translate("MainWindow", "Save Settings"))
+        self.actionExport_Settings.setText(_translate("MainWindow", "Export Settings"))
         self.actionExit.setText(_translate("MainWindow", "Exit"))
 import resources_rc
