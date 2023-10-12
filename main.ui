@@ -85,7 +85,7 @@ QGroupBox{
 	width: 104px;
 	padding: 10px 18px;
 }
-#btn_plex_connect, #btn_spotify_connect{ 
+#btn_plex_connect, #btn_spotify_connect, #btn_reset_settings{ 
 	background-color: #51391B;
 	color: #BABABA;
 	border-radius: 20px;
@@ -116,6 +116,7 @@ QGroupBox{
 	background-color: transparent;
 	border: none;
 }
+
 
 
 
@@ -1843,6 +1844,19 @@ QGroupBox{
                       </property>
                       <property name="text">
                        <string>Settings</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="btn_reset_settings">
+                      <property name="maximumSize">
+                       <size>
+                        <width>150</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string>Reset Settings</string>
                       </property>
                      </widget>
                     </item>

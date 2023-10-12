@@ -28,6 +28,20 @@ logger.addHandler(stream_handler)
 multidisc = ["CD1", "CD2", "Disc1", "Disc2"]
 
 
+# <editor-folding desc="############### General Functions ###############">
+def load_variables(varfile=None):
+    if varfile is None:
+        return None
+    if os.path.exists(varfile):
+        logger.debug(f"Loading file: {varfile}")
+        file = open(varfile)
+        variables = json.load(file)
+        logger.info(f"Settings file successfully loaded.")
+        return variables
+
+
+# </editor-fold>
+
 # <editor-folding desc="############### Playlist Functions ###############">
 # Function to handle prepend changes while exporting playlist
 def read_from_file(file: str):

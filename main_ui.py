@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(970, 693)
+        MainWindow.resize(970, 695)
         MainWindow.setStyleSheet("*{\n"
 "    background: transparent;\n"
 "    color: white;\n"
@@ -25,7 +25,7 @@ class Ui_MainWindow(object):
 "    color: white;\n"
 "    border-radius: 6px;\n"
 "    font-size: 14px;\n"
-"    height: 32;\n"
+"    height: 28;\n"
 "}\n"
 "QComboBox{\n"
 "    background-color: white;\n"
@@ -86,7 +86,7 @@ class Ui_MainWindow(object):
 "    width: 104px;\n"
 "    padding: 10px 18px;\n"
 "}\n"
-"#btn_plex_connect, #btn_spotify_connect{ \n"
+"#btn_plex_connect, #btn_spotify_connect, #btn_reset_settings{ \n"
 "    background-color: #51391B;\n"
 "    color: #BABABA;\n"
 "    border-radius: 20px;\n"
@@ -110,10 +110,6 @@ class Ui_MainWindow(object):
 "    padding: 10px 18px;\n"
 "}\n"
 "\n"
-"\n"
-"#lned_plex_server{\n"
-"    color: gray;\n"
-"}\n"
 "#chkbx_ignore_all{\n"
 "    font-size: 16px;\n"
 "}\n"
@@ -121,6 +117,7 @@ class Ui_MainWindow(object):
 "    background-color: transparent;\n"
 "    border: none;\n"
 "}\n"
+"\n"
 "\n"
 "\n"
 "\n"
@@ -798,6 +795,10 @@ class Ui_MainWindow(object):
         self.lbl_settings_title.setFont(font)
         self.lbl_settings_title.setObjectName("lbl_settings_title")
         self.horizontalLayout_12.addWidget(self.lbl_settings_title, 0, QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        self.btn_reset_settings = QtWidgets.QPushButton(self.frame_settings_title)
+        self.btn_reset_settings.setMaximumSize(QtCore.QSize(150, 16777215))
+        self.btn_reset_settings.setObjectName("btn_reset_settings")
+        self.horizontalLayout_12.addWidget(self.btn_reset_settings)
         self.verticalLayout_25.addWidget(self.frame_settings_title, 0, QtCore.Qt.AlignTop)
         self.frame_settings_body = QtWidgets.QWidget(self.page_settings)
         self.frame_settings_body.setObjectName("frame_settings_body")
@@ -833,6 +834,7 @@ class Ui_MainWindow(object):
         self.lned_plex_server = QtWidgets.QLineEdit(self.grpbox_plex_settings)
         self.lned_plex_server.setMinimumSize(QtCore.QSize(0, 0))
         self.lned_plex_server.setMaximumSize(QtCore.QSize(250, 16777215))
+        self.lned_plex_server.setPlaceholderText("")
         self.lned_plex_server.setObjectName("lned_plex_server")
         self.verticalLayout_2.addWidget(self.lned_plex_server)
         self.verticalLayout_7.addLayout(self.verticalLayout_2)
@@ -906,6 +908,8 @@ class Ui_MainWindow(object):
         self.lned_spotify_redirect = QtWidgets.QLineEdit(self.groupbox_spotify_settings)
         self.lned_spotify_redirect.setMinimumSize(QtCore.QSize(0, 0))
         self.lned_spotify_redirect.setMaximumSize(QtCore.QSize(250, 16777215))
+        self.lned_spotify_redirect.setToolTip("")
+        self.lned_spotify_redirect.setWhatsThis("")
         self.lned_spotify_redirect.setObjectName("lned_spotify_redirect")
         self.verticalLayout_38.addWidget(self.lned_spotify_redirect)
         self.verticalLayout_32.addLayout(self.verticalLayout_38)
@@ -1057,7 +1061,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(4)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.cmb_playlist_prepend, self.lned_custom_prepend)
         MainWindow.setTabOrder(self.lned_custom_prepend, self.btn_add_prepend)
@@ -1102,9 +1106,9 @@ class Ui_MainWindow(object):
         self.btn_playlist_convert.setText(_translate("MainWindow", "Convert"))
         self.btn_playlist_combine.setText(_translate("MainWindow", "Combine"))
         self.lbl_settings_title.setText(_translate("MainWindow", "Settings"))
+        self.btn_reset_settings.setText(_translate("MainWindow", "Reset Settings"))
         self.grpbox_plex_settings.setTitle(_translate("MainWindow", "Plex Settings"))
         self.lbl_plex_server.setText(_translate("MainWindow", "Plex Server"))
-        self.lned_plex_server.setPlaceholderText(_translate("MainWindow", "ex: http://192.168.0.2:32400"))
         self.lbl_plex_token.setText(_translate("MainWindow", "Plex Token"))
         self.chkbx_ignore_all.setText(_translate("MainWindow", "Ignore \'All Music\' Playlist"))
         self.groupbox_spotify_settings.setTitle(_translate("MainWindow", "Spotify Settings"))

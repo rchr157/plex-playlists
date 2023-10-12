@@ -98,7 +98,7 @@ class MainWindow(QMainWindow):
         self.load_settings()
 
         # Menus
-        self.ui.actionLoad_Settings.triggered.connect(self.load_settings)
+        self.ui.actionLoad_Settings.triggered.connect(self.load_settings_from_file)
         self.ui.actionSave_Settings.triggered.connect(self.save_settings)
 
         # Side Panel
@@ -148,6 +148,7 @@ class MainWindow(QMainWindow):
         self.ui.chkbx_ignore_all.toggled.connect(self.plex_update_playlists)
         self.ui.btn_playlist_directory.clicked.connect(self.browse_playlist_directory)
         self.ui.btn_export_directory.clicked.connect(self.browse_export_directory)
+        self.ui.btn_reset_settings.clicked.connect(self.reset_settings)
 
     def show(self):
         self.main_win.show()
@@ -292,13 +293,27 @@ class MainWindow(QMainWindow):
             "spotify_redirect_uri": self.ui.lned_spotify_redirect.text()
         }
 
+    def load_settings_from_file(self):
+        file = self.FileDialog(fmt=("Json Files (*.json)", "All Files (*)"))
+        self.variables = pp.load_variables(file[0])
+        self.settings_from_variable()
+
+    def settings_from_variable(self):
+        self.ui.lned_plex_server.setText(self.variables["plex_server"])
+        self.ui.lned_plex_token.setText(self.variables["plex_token"])
+        self.ui.lned_playlist_directory.setText(self.variables["playlist_directory"])
+        self.ui.lned_export_directory.setText(self.variables["export_directory"])
+        self.ui.cmb_playlist_prepend.addItems(self.variables["prepends"])
+        self.ui.lned_spotify_clientid.setText(self.variables["spotify_client_id"])
+        self.ui.lned_spotify_secret.setText(self.variables["spotify_client_secret"])
+        self.ui.lned_spotify_redirect.setText(self.variables["spotify_redirect_uri"])
+
     def reset_settings(self):
         self.ui.lned_plex_server.setText("")
         self.ui.lned_plex_token.setText("")
         self.ui.lned_playlist_directory.setText("")
         self.ui.lned_export_directory.setText("")
-        for i in range(self.ui.cmb_playlist_prepend.count()):
-            self.ui.cmb_playlist_prepend.removeItem(i)
+        self.ui.cmb_playlist_prepend.clear()
         self.ui.lned_spotify_clientid.setText("")
         self.ui.lned_spotify_secret.setText("")
         self.ui.lned_spotify_redirect.setText("")
