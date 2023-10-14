@@ -290,8 +290,18 @@ def spotify_get_available_playlists(sp):
 
 
 def spotify_get_playlist_items(sp, playlist):
-    sp_playlist = sp.playlist_items(playlist_id=playlist)
-    return [item['track'] for item in sp_playlist['items']]
+    tracks = []
+    offset = 0
+    sp_playlist = sp.playlist_items(playlist_id=playlist, limit=100, offset=offset)
+    tracks = tracks + [item['track'] for item in sp_playlist['items']]
+    # Handle condition if playlist has more than 100 tracks (limited by api)
+    if sp_playlist['next'] is not None:
+        while sp_playlist['next'] is not None:
+            offset += 100
+            sp_playlist = sp.playlist_items(playlist_id=playlist, limit=100, offset=offset)
+            tracks = tracks + [item['track'] for item in sp_playlist['items']]
+
+    return tracks
 
 
 def spotify_get_track_uri(item):
@@ -407,7 +417,13 @@ def spotify_create_playlist(sp, user, playlist_name, public=False, collaborative
 
 
 def spotify_add_to_playlist(sp, playlist_uri, items: list):
-    sp.playlist_add_items(playlist_uri, items)
+    if len(items) > 100:
+        # handle request if playlist has more than 100 tracks to be added
+        split_uris = [items[i * 100:(i + 1) * 100] for i in range((len(items) + 100 - 1) // 100)]
+        for chunk in split_uris:
+            sp.playlist_add_items(playlist_uri, chunk)
+    else:
+        sp.playlist_add_items(playlist_uri, items)
     return
 
 
