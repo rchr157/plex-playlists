@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>970</width>
-    <height>695</height>
+    <height>738</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -47,6 +47,9 @@ QLabel{
 QGroupBox{
 	font-size: 23px;
 }
+QCheckBox{
+	font-size: 16px;
+}
 
 #lbl_home_title, #lbl_plex_title, #lbl_spotify_title, #lbl_playlist_title, #lbl_settings_title{
 	font-size: 32px}
@@ -75,7 +78,7 @@ QGroupBox{
 	text-align: left;
 }
 
-#btn_plex_download, #btn_plex_upload, #btn_plex_update, #btn_spotify_download, #btn_spotify_upload, #btn_spotify_update{
+#btn_plex_download, #btn_plex_upload, #btn_plex_update, #btn_spotify_download, #btn_spotify_upload, #btn_spotify_update, #btn_spotify_url_transfer{
 	background-color: transparent;
 	color: #BABABA;
 	border: 1px solid #51391B;
@@ -85,7 +88,7 @@ QGroupBox{
 	width: 104px;
 	padding: 10px 18px;
 }
-#btn_plex_connect, #btn_spotify_connect, #btn_save_settings, #btn_reset_settings{ 
+#btn_plex_connect, #btn_spotify_connect{ 
 	background-color: #51391B;
 	color: #BABABA;
 	border-radius: 20px;
@@ -98,7 +101,7 @@ QGroupBox{
 #cmb_library_prepend, #cmb_library_sections, #cmb_spotify_prepend{
 	background-color: #272727;
 }
-#btn_playlist_convert, #btn_playlist_combine, #btn_tutorial{
+#btn_playlist_convert, #btn_playlist_combine, #btn_tutorial, #btn_save_settings, #btn_reset_settings{
 	background-color: transparent;
 	border: 1px solid #E5A00D;
 	color: #E5A00D;
@@ -109,9 +112,7 @@ QGroupBox{
 	padding: 10px 18px;
 }
 
-#chkbx_ignore_all{
-	font-size: 16px;
-}
+
 #btn_add_prepend, #btn_add_section_directory, #btn_playlist_directory, #btn_export_directory{
 	background-color: transparent;
 	border: none;
@@ -754,6 +755,9 @@ QGroupBox{
                           <pointsize>-1</pointsize>
                          </font>
                         </property>
+                        <property name="cursor">
+                         <cursorShape>PointingHandCursor</cursorShape>
+                        </property>
                        </widget>
                       </item>
                      </layout>
@@ -807,6 +811,9 @@ QGroupBox{
                          <font>
                           <pointsize>-1</pointsize>
                          </font>
+                        </property>
+                        <property name="cursor">
+                         <cursorShape>PointingHandCursor</cursorShape>
                         </property>
                        </widget>
                       </item>
@@ -889,6 +896,9 @@ QGroupBox{
                        <property name="enabled">
                         <bool>false</bool>
                        </property>
+                       <property name="cursor">
+                        <cursorShape>PointingHandCursor</cursorShape>
+                       </property>
                        <property name="text">
                         <string>M3U</string>
                        </property>
@@ -909,6 +919,9 @@ QGroupBox{
                        <property name="enabled">
                         <bool>false</bool>
                        </property>
+                       <property name="cursor">
+                        <cursorShape>PointingHandCursor</cursorShape>
+                       </property>
                        <property name="text">
                         <string>Upload</string>
                        </property>
@@ -928,6 +941,9 @@ QGroupBox{
                       <widget class="QPushButton" name="btn_plex_update">
                        <property name="enabled">
                         <bool>false</bool>
+                       </property>
+                       <property name="cursor">
+                        <cursorShape>PointingHandCursor</cursorShape>
                        </property>
                        <property name="text">
                         <string>Transfer</string>
@@ -1035,7 +1051,88 @@ QGroupBox{
                      <number>0</number>
                     </property>
                     <item>
-                     <widget class="QFrame" name="frame_12">
+                     <widget class="QFrame" name="frame_spotifu_url">
+                      <property name="frameShape">
+                       <enum>QFrame::StyledPanel</enum>
+                      </property>
+                      <property name="frameShadow">
+                       <enum>QFrame::Raised</enum>
+                      </property>
+                      <layout class="QVBoxLayout" name="verticalLayout_37">
+                       <property name="spacing">
+                        <number>0</number>
+                       </property>
+                       <property name="leftMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="topMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="rightMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="bottomMargin">
+                        <number>0</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="label">
+                         <property name="text">
+                          <string>Spotify Playlist URL:</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QFrame" name="frame_13">
+                         <property name="frameShape">
+                          <enum>QFrame::StyledPanel</enum>
+                         </property>
+                         <property name="frameShadow">
+                          <enum>QFrame::Raised</enum>
+                         </property>
+                         <layout class="QHBoxLayout" name="horizontalLayout_24">
+                          <property name="spacing">
+                           <number>0</number>
+                          </property>
+                          <property name="leftMargin">
+                           <number>0</number>
+                          </property>
+                          <property name="topMargin">
+                           <number>0</number>
+                          </property>
+                          <property name="rightMargin">
+                           <number>0</number>
+                          </property>
+                          <property name="bottomMargin">
+                           <number>0</number>
+                          </property>
+                          <item>
+                           <widget class="QLineEdit" name="lned_spotify_url">
+                            <property name="enabled">
+                             <bool>false</bool>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QPushButton" name="btn_spotify_url_transfer">
+                            <property name="enabled">
+                             <bool>false</bool>
+                            </property>
+                            <property name="cursor">
+                             <cursorShape>PointingHandCursor</cursorShape>
+                            </property>
+                            <property name="text">
+                             <string>Transfer</string>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
+                        </widget>
+                       </item>
+                      </layout>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QFrame" name="frame_directory_path">
                       <property name="frameShape">
                        <enum>QFrame::StyledPanel</enum>
                       </property>
@@ -1083,13 +1180,16 @@ QGroupBox{
                            <pointsize>-1</pointsize>
                           </font>
                          </property>
+                         <property name="cursor">
+                          <cursorShape>PointingHandCursor</cursorShape>
+                         </property>
                         </widget>
                        </item>
                       </layout>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QFrame" name="frame_11">
+                     <widget class="QFrame" name="frame_playlist_listview">
                       <property name="frameShape">
                        <enum>QFrame::StyledPanel</enum>
                       </property>
@@ -1161,6 +1261,9 @@ QGroupBox{
                            <property name="enabled">
                             <bool>false</bool>
                            </property>
+                           <property name="cursor">
+                            <cursorShape>PointingHandCursor</cursorShape>
+                           </property>
                            <property name="text">
                             <string>M3U</string>
                            </property>
@@ -1181,6 +1284,9 @@ QGroupBox{
                            <property name="enabled">
                             <bool>false</bool>
                            </property>
+                           <property name="cursor">
+                            <cursorShape>PointingHandCursor</cursorShape>
+                           </property>
                            <property name="text">
                             <string>Upload</string>
                            </property>
@@ -1200,6 +1306,9 @@ QGroupBox{
                           <widget class="QPushButton" name="btn_spotify_update">
                            <property name="enabled">
                             <bool>false</bool>
+                           </property>
+                           <property name="cursor">
+                            <cursorShape>PointingHandCursor</cursorShape>
                            </property>
                            <property name="text">
                             <string>Transfer</string>
@@ -1705,6 +1814,9 @@ QGroupBox{
                             <pointsize>-1</pointsize>
                            </font>
                           </property>
+                          <property name="cursor">
+                           <cursorShape>PointingHandCursor</cursorShape>
+                          </property>
                          </widget>
                         </item>
                        </layout>
@@ -2006,6 +2118,16 @@ QGroupBox{
                                  </property>
                                 </widget>
                                </item>
+                               <item>
+                                <widget class="QCheckBox" name="chkbx_upload_via_post">
+                                 <property name="cursor">
+                                  <cursorShape>PointingHandCursor</cursorShape>
+                                 </property>
+                                 <property name="text">
+                                  <string>Enable Upload via Post</string>
+                                 </property>
+                                </widget>
+                               </item>
                               </layout>
                              </widget>
                             </item>
@@ -2142,7 +2264,7 @@ QGroupBox{
                                  <cursorShape>PointingHandCursor</cursorShape>
                                 </property>
                                 <property name="text">
-                                 <string>Make Playlist Public</string>
+                                 <string>Make New Playlist Public</string>
                                 </property>
                                </widget>
                               </item>
@@ -2152,7 +2274,7 @@ QGroupBox{
                                  <cursorShape>PointingHandCursor</cursorShape>
                                 </property>
                                 <property name="text">
-                                 <string>Make Playlist Collaborative</string>
+                                 <string>Make New Playlist Collaborative</string>
                                 </property>
                                </widget>
                               </item>
@@ -2361,6 +2483,9 @@ QGroupBox{
                       </property>
                       <item alignment="Qt::AlignHCenter">
                        <widget class="QPushButton" name="btn_save_settings">
+                        <property name="cursor">
+                         <cursorShape>PointingHandCursor</cursorShape>
+                        </property>
                         <property name="text">
                          <string>Save</string>
                         </property>
@@ -2373,6 +2498,9 @@ QGroupBox{
                           <width>150</width>
                           <height>16777215</height>
                          </size>
+                        </property>
+                        <property name="cursor">
+                         <cursorShape>PointingHandCursor</cursorShape>
                         </property>
                         <property name="text">
                          <string>Reset Settings</string>

@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(970, 695)
+        MainWindow.resize(970, 738)
         MainWindow.setStyleSheet("*{\n"
 "    background: transparent;\n"
 "    color: white;\n"
@@ -48,6 +48,9 @@ class Ui_MainWindow(object):
 "QGroupBox{\n"
 "    font-size: 23px;\n"
 "}\n"
+"QCheckBox{\n"
+"    font-size: 16px;\n"
+"}\n"
 "\n"
 "#lbl_home_title, #lbl_plex_title, #lbl_spotify_title, #lbl_playlist_title, #lbl_settings_title{\n"
 "    font-size: 32px}\n"
@@ -76,7 +79,7 @@ class Ui_MainWindow(object):
 "    text-align: left;\n"
 "}\n"
 "\n"
-"#btn_plex_download, #btn_plex_upload, #btn_plex_update, #btn_spotify_download, #btn_spotify_upload, #btn_spotify_update{\n"
+"#btn_plex_download, #btn_plex_upload, #btn_plex_update, #btn_spotify_download, #btn_spotify_upload, #btn_spotify_update, #btn_spotify_url_transfer{\n"
 "    background-color: transparent;\n"
 "    color: #BABABA;\n"
 "    border: 1px solid #51391B;\n"
@@ -86,7 +89,7 @@ class Ui_MainWindow(object):
 "    width: 104px;\n"
 "    padding: 10px 18px;\n"
 "}\n"
-"#btn_plex_connect, #btn_spotify_connect, #btn_save_settings, #btn_reset_settings{ \n"
+"#btn_plex_connect, #btn_spotify_connect{ \n"
 "    background-color: #51391B;\n"
 "    color: #BABABA;\n"
 "    border-radius: 20px;\n"
@@ -99,7 +102,7 @@ class Ui_MainWindow(object):
 "#cmb_library_prepend, #cmb_library_sections, #cmb_spotify_prepend{\n"
 "    background-color: #272727;\n"
 "}\n"
-"#btn_playlist_convert, #btn_playlist_combine, #btn_tutorial{\n"
+"#btn_playlist_convert, #btn_playlist_combine, #btn_tutorial, #btn_save_settings, #btn_reset_settings{\n"
 "    background-color: transparent;\n"
 "    border: 1px solid #E5A00D;\n"
 "    color: #E5A00D;\n"
@@ -110,9 +113,7 @@ class Ui_MainWindow(object):
 "    padding: 10px 18px;\n"
 "}\n"
 "\n"
-"#chkbx_ignore_all{\n"
-"    font-size: 16px;\n"
-"}\n"
+"\n"
 "#btn_add_prepend, #btn_add_section_directory, #btn_playlist_directory, #btn_export_directory{\n"
 "    background-color: transparent;\n"
 "    border: none;\n"
@@ -379,6 +380,7 @@ class Ui_MainWindow(object):
         self.cmb_library_sections.setEnabled(False)
         font = QtGui.QFont()
         self.cmb_library_sections.setFont(font)
+        self.cmb_library_sections.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.cmb_library_sections.setObjectName("cmb_library_sections")
         self.verticalLayout_26.addWidget(self.cmb_library_sections)
         self.frame_plex_body.addWidget(self.frame)
@@ -400,6 +402,7 @@ class Ui_MainWindow(object):
         self.cmb_library_prepend.setEnabled(False)
         font = QtGui.QFont()
         self.cmb_library_prepend.setFont(font)
+        self.cmb_library_prepend.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.cmb_library_prepend.setObjectName("cmb_library_prepend")
         self.verticalLayout_10.addWidget(self.cmb_library_prepend)
         self.frame_plex_body.addWidget(self.frame_7)
@@ -432,6 +435,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
         self.btn_plex_download = QtWidgets.QPushButton(self.page_plex)
         self.btn_plex_download.setEnabled(False)
+        self.btn_plex_download.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         icon7 = QtGui.QIcon()
         icon7.addPixmap(QtGui.QPixmap(":/light/icons/light/cloud-download-svgrepo-com.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.btn_plex_download.setIcon(icon7)
@@ -440,6 +444,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.addWidget(self.btn_plex_download)
         self.btn_plex_upload = QtWidgets.QPushButton(self.page_plex)
         self.btn_plex_upload.setEnabled(False)
+        self.btn_plex_upload.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         icon8 = QtGui.QIcon()
         icon8.addPixmap(QtGui.QPixmap(":/light/icons/light/cloud-upload-svgrepo-com.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.btn_plex_upload.setIcon(icon8)
@@ -448,6 +453,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.addWidget(self.btn_plex_upload)
         self.btn_plex_update = QtWidgets.QPushButton(self.page_plex)
         self.btn_plex_update.setEnabled(False)
+        self.btn_plex_update.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.btn_plex_update.setIcon(icon2)
         self.btn_plex_update.setIconSize(QtCore.QSize(24, 24))
         self.btn_plex_update.setObjectName("btn_plex_update")
@@ -490,41 +496,72 @@ class Ui_MainWindow(object):
         self.verticalLayout_31.setContentsMargins(-1, 7, 25, 0)
         self.verticalLayout_31.setSpacing(10)
         self.verticalLayout_31.setObjectName("verticalLayout_31")
-        self.frame_12 = QtWidgets.QFrame(self.frame_spotify_body)
-        self.frame_12.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame_12.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame_12.setObjectName("frame_12")
-        self.verticalLayout_30 = QtWidgets.QVBoxLayout(self.frame_12)
+        self.frame_spotifu_url = QtWidgets.QFrame(self.frame_spotify_body)
+        self.frame_spotifu_url.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame_spotifu_url.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_spotifu_url.setObjectName("frame_spotifu_url")
+        self.verticalLayout_37 = QtWidgets.QVBoxLayout(self.frame_spotifu_url)
+        self.verticalLayout_37.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout_37.setSpacing(0)
+        self.verticalLayout_37.setObjectName("verticalLayout_37")
+        self.label = QtWidgets.QLabel(self.frame_spotifu_url)
+        self.label.setObjectName("label")
+        self.verticalLayout_37.addWidget(self.label)
+        self.frame_13 = QtWidgets.QFrame(self.frame_spotifu_url)
+        self.frame_13.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame_13.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_13.setObjectName("frame_13")
+        self.horizontalLayout_24 = QtWidgets.QHBoxLayout(self.frame_13)
+        self.horizontalLayout_24.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_24.setSpacing(0)
+        self.horizontalLayout_24.setObjectName("horizontalLayout_24")
+        self.lned_spotify_url = QtWidgets.QLineEdit(self.frame_13)
+        self.lned_spotify_url.setEnabled(False)
+        self.lned_spotify_url.setObjectName("lned_spotify_url")
+        self.horizontalLayout_24.addWidget(self.lned_spotify_url)
+        self.btn_spotify_url_transfer = QtWidgets.QPushButton(self.frame_13)
+        self.btn_spotify_url_transfer.setEnabled(False)
+        self.btn_spotify_url_transfer.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.btn_spotify_url_transfer.setObjectName("btn_spotify_url_transfer")
+        self.horizontalLayout_24.addWidget(self.btn_spotify_url_transfer)
+        self.verticalLayout_37.addWidget(self.frame_13)
+        self.verticalLayout_31.addWidget(self.frame_spotifu_url)
+        self.frame_directory_path = QtWidgets.QFrame(self.frame_spotify_body)
+        self.frame_directory_path.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame_directory_path.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_directory_path.setObjectName("frame_directory_path")
+        self.verticalLayout_30 = QtWidgets.QVBoxLayout(self.frame_directory_path)
         self.verticalLayout_30.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_30.setSpacing(6)
         self.verticalLayout_30.setObjectName("verticalLayout_30")
-        self.lbl_spotify_prepend = QtWidgets.QLabel(self.frame_12)
+        self.lbl_spotify_prepend = QtWidgets.QLabel(self.frame_directory_path)
         font = QtGui.QFont()
         self.lbl_spotify_prepend.setFont(font)
         self.lbl_spotify_prepend.setWhatsThis("")
         self.lbl_spotify_prepend.setObjectName("lbl_spotify_prepend")
         self.verticalLayout_30.addWidget(self.lbl_spotify_prepend)
-        self.cmb_spotify_prepend = QtWidgets.QComboBox(self.frame_12)
+        self.cmb_spotify_prepend = QtWidgets.QComboBox(self.frame_directory_path)
         self.cmb_spotify_prepend.setEnabled(False)
         font = QtGui.QFont()
         self.cmb_spotify_prepend.setFont(font)
+        self.cmb_spotify_prepend.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.cmb_spotify_prepend.setObjectName("cmb_spotify_prepend")
         self.verticalLayout_30.addWidget(self.cmb_spotify_prepend)
-        self.verticalLayout_31.addWidget(self.frame_12)
-        self.frame_11 = QtWidgets.QFrame(self.frame_spotify_body)
-        self.frame_11.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame_11.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame_11.setObjectName("frame_11")
-        self.verticalLayout_29 = QtWidgets.QVBoxLayout(self.frame_11)
+        self.verticalLayout_31.addWidget(self.frame_directory_path)
+        self.frame_playlist_listview = QtWidgets.QFrame(self.frame_spotify_body)
+        self.frame_playlist_listview.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame_playlist_listview.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_playlist_listview.setObjectName("frame_playlist_listview")
+        self.verticalLayout_29 = QtWidgets.QVBoxLayout(self.frame_playlist_listview)
         self.verticalLayout_29.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_29.setSpacing(6)
         self.verticalLayout_29.setObjectName("verticalLayout_29")
-        self.lbl_spotify_playlists = QtWidgets.QLabel(self.frame_11)
+        self.lbl_spotify_playlists = QtWidgets.QLabel(self.frame_playlist_listview)
         font = QtGui.QFont()
         self.lbl_spotify_playlists.setFont(font)
         self.lbl_spotify_playlists.setObjectName("lbl_spotify_playlists")
         self.verticalLayout_29.addWidget(self.lbl_spotify_playlists)
-        self.list_spotify_playlist = QtWidgets.QListWidget(self.frame_11)
+        self.list_spotify_playlist = QtWidgets.QListWidget(self.frame_playlist_listview)
         self.list_spotify_playlist.setEnabled(False)
         font = QtGui.QFont()
         font.setPointSize(11)
@@ -537,26 +574,29 @@ class Ui_MainWindow(object):
         self.horizontalLayout_20.setContentsMargins(30, 0, 55, -1)
         self.horizontalLayout_20.setSpacing(20)
         self.horizontalLayout_20.setObjectName("horizontalLayout_20")
-        self.btn_spotify_download = QtWidgets.QPushButton(self.frame_11)
+        self.btn_spotify_download = QtWidgets.QPushButton(self.frame_playlist_listview)
         self.btn_spotify_download.setEnabled(False)
+        self.btn_spotify_download.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.btn_spotify_download.setIcon(icon7)
         self.btn_spotify_download.setIconSize(QtCore.QSize(24, 24))
         self.btn_spotify_download.setObjectName("btn_spotify_download")
         self.horizontalLayout_20.addWidget(self.btn_spotify_download)
-        self.btn_spotify_upload = QtWidgets.QPushButton(self.frame_11)
+        self.btn_spotify_upload = QtWidgets.QPushButton(self.frame_playlist_listview)
         self.btn_spotify_upload.setEnabled(False)
+        self.btn_spotify_upload.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.btn_spotify_upload.setIcon(icon8)
         self.btn_spotify_upload.setIconSize(QtCore.QSize(24, 24))
         self.btn_spotify_upload.setObjectName("btn_spotify_upload")
         self.horizontalLayout_20.addWidget(self.btn_spotify_upload)
-        self.btn_spotify_update = QtWidgets.QPushButton(self.frame_11)
+        self.btn_spotify_update = QtWidgets.QPushButton(self.frame_playlist_listview)
         self.btn_spotify_update.setEnabled(False)
+        self.btn_spotify_update.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.btn_spotify_update.setIcon(icon1)
         self.btn_spotify_update.setIconSize(QtCore.QSize(24, 24))
         self.btn_spotify_update.setObjectName("btn_spotify_update")
         self.horizontalLayout_20.addWidget(self.btn_spotify_update)
         self.verticalLayout_29.addLayout(self.horizontalLayout_20)
-        self.verticalLayout_31.addWidget(self.frame_11)
+        self.verticalLayout_31.addWidget(self.frame_playlist_listview)
         self.verticalLayout_28.addWidget(self.frame_spotify_body)
         self.stackedWidget.addWidget(self.page_spotify)
         self.page_playlists = QtWidgets.QWidget()
@@ -729,6 +769,7 @@ class Ui_MainWindow(object):
         self.cmb_playlist_prepend = QtWidgets.QComboBox(self.frame_playlist_body)
         font = QtGui.QFont()
         self.cmb_playlist_prepend.setFont(font)
+        self.cmb_playlist_prepend.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.cmb_playlist_prepend.setObjectName("cmb_playlist_prepend")
         self.verticalLayout_6.addWidget(self.cmb_playlist_prepend)
         self.verticalLayout_12.addLayout(self.verticalLayout_6)
@@ -857,6 +898,10 @@ class Ui_MainWindow(object):
         self.chkbx_ignore_all.setChecked(True)
         self.chkbx_ignore_all.setObjectName("chkbx_ignore_all")
         self.verticalLayout_35.addWidget(self.chkbx_ignore_all)
+        self.chkbx_upload_via_post = QtWidgets.QCheckBox(self.frame_9)
+        self.chkbx_upload_via_post.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.chkbx_upload_via_post.setObjectName("chkbx_upload_via_post")
+        self.verticalLayout_35.addWidget(self.chkbx_upload_via_post)
         self.verticalLayout_7.addWidget(self.frame_9)
         self.horizontalLayout_21.addLayout(self.verticalLayout_7)
         self.horizontalLayout_13.addWidget(self.grpbox_plex_settings, 0, QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
@@ -1013,10 +1058,12 @@ class Ui_MainWindow(object):
         self.horizontalLayout_23.setSpacing(0)
         self.horizontalLayout_23.setObjectName("horizontalLayout_23")
         self.btn_save_settings = QtWidgets.QPushButton(self.frame_settings_body)
+        self.btn_save_settings.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.btn_save_settings.setObjectName("btn_save_settings")
         self.horizontalLayout_23.addWidget(self.btn_save_settings, 0, QtCore.Qt.AlignHCenter)
         self.btn_reset_settings = QtWidgets.QPushButton(self.frame_settings_body)
         self.btn_reset_settings.setMaximumSize(QtCore.QSize(150, 16777215))
+        self.btn_reset_settings.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.btn_reset_settings.setObjectName("btn_reset_settings")
         self.horizontalLayout_23.addWidget(self.btn_reset_settings, 0, QtCore.Qt.AlignHCenter)
         self.verticalLayout_24.addLayout(self.horizontalLayout_23)
@@ -1103,6 +1150,8 @@ class Ui_MainWindow(object):
         self.btn_plex_update.setText(_translate("MainWindow", "Transfer"))
         self.lbl_spotify_title.setText(_translate("MainWindow", "Your Spotify Library"))
         self.btn_spotify_connect.setText(_translate("MainWindow", "Connect"))
+        self.label.setText(_translate("MainWindow", "Spotify Playlist URL:"))
+        self.btn_spotify_url_transfer.setText(_translate("MainWindow", "Transfer"))
         self.lbl_spotify_prepend.setText(_translate("MainWindow", "Directory Path"))
         self.lbl_spotify_playlists.setText(_translate("MainWindow", "Library Playlists"))
         self.btn_spotify_download.setText(_translate("MainWindow", "M3U"))
@@ -1118,12 +1167,13 @@ class Ui_MainWindow(object):
         self.lbl_plex_server.setText(_translate("MainWindow", "Plex Server"))
         self.lbl_plex_token.setText(_translate("MainWindow", "Plex Token"))
         self.chkbx_ignore_all.setText(_translate("MainWindow", "Ignore \'All Music\' Playlist"))
+        self.chkbx_upload_via_post.setText(_translate("MainWindow", "Enable Upload via Post"))
         self.groupbox_spotify_settings.setTitle(_translate("MainWindow", "Spotify Settings"))
         self.lbl_spotify_clientid.setText(_translate("MainWindow", "Client ID"))
         self.lbl_spotify_secret.setText(_translate("MainWindow", "Secret Key"))
         self.lbl_spotify_redirect.setText(_translate("MainWindow", "Redirect URI"))
-        self.chkbx_spotify_public.setText(_translate("MainWindow", "Make Playlist Public"))
-        self.chkbx_spotify_collab.setText(_translate("MainWindow", "Make Playlist Collaborative"))
+        self.chkbx_spotify_public.setText(_translate("MainWindow", "Make New Playlist Public"))
+        self.chkbx_spotify_collab.setText(_translate("MainWindow", "Make New Playlist Collaborative"))
         self.grpbox_playlist_settings.setTitle(_translate("MainWindow", "Playlist Settings"))
         self.lbl_playlist_directory.setText(_translate("MainWindow", "Playlist Directory"))
         self.lbl_export_directory.setText(_translate("MainWindow", "Export Directory"))
