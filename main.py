@@ -18,6 +18,8 @@ from progress_bar_ui import Ui_Form
 import playlist_module as pp
 
 # <editor-fold desc="############### General TODOs ###############"
+# TODO: Update UI
+# TODO: Integrate checkbox options for creating playlist (make public, collaborative)
 # TODO: Organize icons, rename files
 # TODO: Highlight lineEdits and combobox during tutorial
 # TODO: Optimize library section to prepend and directory
@@ -26,6 +28,21 @@ import playlist_module as pp
 # TODO: Handle single Plex Section,
 #  TODO: autoselect dropdown,
 #  TODO: create folder for section when exporting
+# TODO: Make Settings page scrollable
+# TODO: Update tutorial button
+# TODO: Add URL field to drop playlists
+# TODO: Add Apple Music API integration (?)
+# TODO: Add Itunes integration (? is it the same as M3U?)
+# TODO: Add Tidal API Integration (?)
+# TODO: Add Youtube/Youtube Music API integration (?)
+# TODO: Add Amazon Music API Integration (?)
+# TODO: Add Soundcloud API Integration (?)
+# TODO: Add Bandcamp API Integration (?)
+# TODO: Add Deezer API Integration (?)
+# TODO: Add Qobuz API Integration (?)
+# TODO: Add Jellyfin API Integration (?)
+# TODO: Last.fm API Integration (?)
+# TODO: Add Plex Collection to Jellyfin integration (?)
 # </editor-fold>
 
 
@@ -132,6 +149,8 @@ class MainWindow(QMainWindow):
         self.ui.btn_spotify_download.clicked.connect(self.spotify_download)
         self.ui.btn_spotify_upload.clicked.connect(self.spotify_upload)
         self.ui.btn_spotify_update.clicked.connect(self.spotify_transfer)
+        self.ui.btn_spotify_url_transfer.clicked.connect(self.spotify_link_transfer)
+        self.ui.lned_spotify_url.textChanged.connect(self.check_spotify_url_btn)
 
         # Playlist Page
         self.ui.cmb_library_sections.currentTextChanged.connect(self.plex_update_playlists)
@@ -151,6 +170,8 @@ class MainWindow(QMainWindow):
         self.ui.btn_export_directory.clicked.connect(self.browse_export_directory)
         self.ui.btn_reset_settings.clicked.connect(self.reset_settings)
         self.ui.btn_save_settings.clicked.connect(self.save_settings)
+        self.ui.chkbx_spotify_collab.toggled.connect(self.check_spotify_checkbox)
+        self.ui.chkbx_spotify_public.toggled.connect(self.check_spotify_checkbox)
 
     def show(self):
         self.main_win.show()
@@ -195,6 +216,77 @@ class MainWindow(QMainWindow):
             return path
         else:
             return ''
+
+    # </editor-fold>
+
+    # <editor-fold desc="############### Settings Functions ###############">
+    # Save Settings to Json
+    def save_settings(self):
+        # Save current
+        self.settings_manager.save_settings(self.wmap)
+        # Let user know Saving data is complete
+        title = "Saving Complete!"
+        buttons = ['Ok']
+        msgtype = QMessageBox.Information
+        # First Message
+        message = "Your settings have been saved!"
+        self.MessageBox(title, message, buttons, msgtype)
+
+    def export_settings(self):
+        save_directory = self.FileDialog(is_folder=True)
+        if save_directory == "":
+            return
+        data = {
+            "plex_server": self.ui.lned_plex_server.text(),
+            "plex_token": self.ui.lned_plex_token.text(),
+            "playlist_directory": self.ui.lned_playlist_directory.text(),
+            "export_directory": self.ui.lned_export_directory.text(),
+            "prepends": [self.ui.cmb_playlist_prepend.itemText(i) for i in
+                         range(self.ui.cmb_playlist_prepend.count())],
+            "spotify_client_id": self.ui.lned_spotify_clientid.text(),
+            "spotify_client_secret": self.ui.lned_spotify_secret.text(),
+            "spotify_redirect_uri": self.ui.lned_spotify_redirect.text()
+        }
+
+        with open(os.path.join(save_directory[0], 'settings.json'), 'w') as output:
+            json.dump(data, output, indent=2, separators=(',', ': '))
+
+            # Let user know Saving data is complete
+            title = "Saving Complete!"
+            buttons = ['Ok']
+            msgtype = QMessageBox.Information
+            # First Message
+            message = "Your settings have been saved!"
+            self.MessageBox(title, message, buttons, msgtype)
+
+    def load_settings(self):
+
+        self.settings_manager.load_settings(self.wmap)
+        self.variables = self.settings_manager.save_to_variables(self.wmap)
+        self.check_plex_connect_btn()
+        self.check_spotify_connect_btn()
+
+    def load_settings_from_file(self):
+        # Ask user for file
+        file = self.FileDialog(fmt=("Json Files (*.json)", "All Files (*)"))
+        if file == "":
+            return
+        # Reset settings
+        self.reset_settings()
+        # Extract settings from file
+        self.variables = pp.load_variables(file[0])
+        # Set values for settings
+        self.settings_manager.load_from_variable(wmap=self.wmap, variables=self.variables)
+
+    def reset_settings(self):
+        self.ui.lned_plex_server.setText("")
+        self.ui.lned_plex_token.setText("")
+        self.ui.lned_playlist_directory.setText("")
+        self.ui.lned_export_directory.setText("")
+        self.ui.cmb_playlist_prepend.clear()
+        self.ui.lned_spotify_clientid.setText("")
+        self.ui.lned_spotify_secret.setText("")
+        self.ui.lned_spotify_redirect.setText("")
 
     # </editor-fold>
 
@@ -252,6 +344,17 @@ class MainWindow(QMainWindow):
     def get_spotify_selections(self):
         return [playlist.text() for playlist in self.ui.list_spotify_playlist.selectedItems()]
 
+    def check_spotify_checkbox(self):
+        # Collaborative playlists can only be private
+        pub, collab = self.get_spotify_checkbox()
+        if collab is True:
+            self.ui.chkbx_spotify_public.setChecked(False)
+
+    def get_spotify_checkbox(self):
+        pub = self.ui.chkbx_spotify_public.isChecked()
+        collab = self.ui.chkbx_spotify_collab.isChecked()
+        return pub, collab
+
     def get_files(self):
         directory, _ = self.get_directories(playlist=True)
         fmt_filter = ("M3U Files (*.m3u *.m3u8)", "All Files (*)")
@@ -262,74 +365,6 @@ class MainWindow(QMainWindow):
             logger.debug("File chosen not returned as list, will convert to list.")
             files = [files]
         return files
-
-    # Save Settings to Json
-    def save_settings(self):
-        # Save current
-        self.settings_manager.save_settings(self.wmap)
-        # Let user know Saving data is complete
-        title = "Saving Complete!"
-        buttons = ['Ok']
-        msgtype = QMessageBox.Information
-        # First Message
-        message = "Your settings have been saved!"
-        self.MessageBox(title, message, buttons, msgtype)
-
-    def export_settings(self):
-        save_directory = self.FileDialog(is_folder=True)
-        if save_directory == "":
-            return
-        data = {
-                "plex_server": self.ui.lned_plex_server.text(),
-                "plex_token": self.ui.lned_plex_token.text(),
-                "playlist_directory": self.ui.lned_playlist_directory.text(),
-                "export_directory": self.ui.lned_export_directory.text(),
-                "prepends": [self.ui.cmb_playlist_prepend.itemText(i) for i in
-                            range(self.ui.cmb_playlist_prepend.count())],
-                "spotify_client_id": self.ui.lned_spotify_clientid.text(),
-                "spotify_client_secret": self.ui.lned_spotify_secret.text(),
-                "spotify_redirect_uri": self.ui.lned_spotify_redirect.text()
-        }
-
-        with open(os.path.join(save_directory[0], 'settings.json'), 'w') as output:
-            json.dump(data, output, indent=2, separators=(',', ': '))
-
-            # Let user know Saving data is complete
-            title = "Saving Complete!"
-            buttons = ['Ok']
-            msgtype = QMessageBox.Information
-            # First Message
-            message = "Your settings have been saved!"
-            self.MessageBox(title, message, buttons, msgtype)
-
-    def load_settings(self):
-
-        self.settings_manager.load_settings(self.wmap)
-        self.variables = self.settings_manager.save_to_variables(self.wmap)
-        self.check_plex_connect_btn()
-        self.check_spotify_connect_btn()
-
-    def load_settings_from_file(self):
-        # Ask user for file
-        file = self.FileDialog(fmt=("Json Files (*.json)", "All Files (*)"))
-        if file == "":
-            return
-        # Reset settings
-        self.reset_settings()
-        # Extract settings from file
-        self.variables = pp.load_variables(file[0])
-        # Set values for settings
-        self.settings_manager.load_from_variable(wmap=self.wmap, variables=self.variables)
-
-    def reset_settings(self):
-        self.ui.lned_plex_server.setText("")
-        self.ui.lned_plex_token.setText("")
-        self.ui.lned_playlist_directory.setText("")
-        self.ui.lned_export_directory.setText("")
-        self.ui.cmb_playlist_prepend.clear()
-        self.ui.lned_spotify_clientid.setText("")
-        self.ui.lned_spotify_secret.setText("")
-        self.ui.lned_spotify_redirect.setText("")
 
     # Side Panel functions
     def page_clicked(self, page, btn):
@@ -586,15 +621,31 @@ class MainWindow(QMainWindow):
         # Get plex library details
         selected_section, _ = self.get_plex_selections()
 
-        # Ask user to select files
-        files = self.get_files()
-        if files is None: return
+        if self.ui.chkbx_upload_via_post.isChecked():
+            title = "Uploading via POST"
+            button = ['Ok', 'Cancel']
+            msgtype = QMessageBox.Information
+            message = ("You are about to upload via POST. \nYour playlist files should be formatted and placed in a \n"
+                       "directory that your Library section can see.")
+            msg = self.MessageBox(title=title, message=message, btns=button, msgtype=msgtype)
+            if msg == QDialog.Rejected:
+                return
+
+            func = "plex_push_via_post"
+            parameters = {"variables": self.variables, "section": selected_section}
+        else:
+            func = "m3u_to_plex"
+            parameters = {"section": selected_section}
+
+            # Ask user to select files
+            files = self.get_files()
+            if files is None: return
 
         for file in files:
-            logger.debug(f"Uploading '{file}' to Plex.")
-            # pp.m3u_to_plex(section=selected_section, file=file)
+            logger.debug(f"Uploading '{file}' to Plex via POST.")
             logger.debug("Creating Progress Bar Dialog box")
-            ProgressBar(func='m3u_to_plex', **{"section": selected_section, "file": file})
+            parameters['file'] = file  # Add file to parameter
+            ProgressBar(func=func, **parameters)
             logger.info(f"Playlist '{file}' uploaded to Plex.")
 
         # Refresh playlist view
@@ -647,13 +698,16 @@ class MainWindow(QMainWindow):
         logger.debug("Getting plex selection")
         selected_section, selected_playlists = self.get_plex_selections()
 
+        pub = self.ui.chkbx_spotify_public.isChecked()
+        collab = self.ui.chkbx_spotify_collab.isChecked()
+
         # Upload files selected
         for name in selected_playlists:
             logger.debug(f"Transferring Plex playlist '{name}' to Spotify.")
             # pp.plex_to_spotify(sp=self.spotify, section=selected_section, playlist=name)  # push new playlist to plex
             logger.debug("Creating Progress Bar Dialog box")
             ProgressBar(func='plex_to_spotify', **{"sp": self.spotify, "section": selected_section,
-                                                   "playlist": name})
+                                                   "playlist": name, "public": pub, "collab": collab})
             logger.info(f"Plex playlist '{name}' transferred to Spotify.")
 
         # Check that playlists were uploaded
@@ -672,6 +726,8 @@ class MainWindow(QMainWindow):
     # <editor-fold desc="############### Spotify Page Functions ###############">
     # Spotify Functions
     def check_spotify_connect_btn(self):
+        # if self.ui.btn_spotify_connect.text() == "Connected":
+        #     return
         id_pattern = "[0-9a-z]{32}"
         sec_pattern = "[0-9a-z]{32}"
         redir_pattern = "https?:\/\/[0-9a-z.?]{2,256}:[0-9]{2,5}"
@@ -720,9 +776,24 @@ class MainWindow(QMainWindow):
             logger.debug("All necessary Spotify API details have been provided. Enabling Connect button.")
             self.change_button_ui(btn=self.ui.btn_spotify_connect, enable=True,
                                   stylesheet="Background-color: Green; color: rgb(255, 255, 255)")
+
         else:
             logger.debug("One or more Spotify API details missing. Disabling Connect button.")
             self.change_button_ui(btn=self.ui.btn_spotify_connect, enable=False, stylesheet="")
+            # self.change_button_ui(btn=self.ui.lned_spotify_url, enable=False)
+
+    def check_spotify_url_btn(self):
+        # url_pattern = re.compile("https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}/playlist/[a-zA-Z0-9]{22}")
+        url_pattern = re.compile("https?:\/\/(www\.)?open.spotify.com/playlist/[a-zA-Z0-9]{22}")
+        url_link = self.ui.lned_spotify_url.text()
+        check_url = re.match(url_pattern, url_link)
+        if check_url is None:
+            logger.debug("Spotify URL not in correct format")
+            self.change_button_ui(btn=self.ui.btn_spotify_url_transfer, enable=False)
+        else:
+            logger.debug("Spotify URL in correct format")
+            self.change_button_ui(btn=self.ui.btn_spotify_url_transfer, enable=True,
+                                  stylesheet="border: 1px solid #E5A00D; color: #E5A00D")
 
     def spotify_connect(self):
         logger.debug("Connecting to Spotify")
@@ -741,6 +812,7 @@ class MainWindow(QMainWindow):
                               stylesheet="background-color: white; color: black;")  # Enable Path Dropdown
         self.change_button_ui(self.ui.list_spotify_playlist, enable=True,
                               stylesheet="background-color: #565656; color: white;")  # Enable Playlist Dropdown
+        self.change_button_ui(btn=self.ui.lned_spotify_url, enable=True)
         # Update list view
         self.spotify_update_playlists()
         logger.info("Successfully connected to Spotify!")
@@ -846,13 +918,16 @@ class MainWindow(QMainWindow):
             return
 
         logger.info(f"{len(files)} Files selected.")
+        pub, collab = self.get_spotify_checkbox()
+        pub = self.ui.chkbx_spotify_public.isChecked()
+        collab = self.ui.chkbx_spotify_collab.isChecked()
 
         for file in files:
             name = os.path.basename(os.path.splitext(file)[0])
             logger.debug(f"Uploading playlist '{name}' to Spotify.")
             # pp.m3u_to_spotify(sp=self.spotify, file=file)
             logger.debug("Creating Progress Bar Dialog box")
-            ProgressBar(func='m3u_to_spotify', **{"sp": self.spotify, "file": file})
+            ProgressBar(func='m3u_to_spotify', **{"sp": self.spotify, "file": file, "public": pub, "collab": collab})
             logger.info(f"Playlist '{name}' has been uploaded to Spotify.")
 
             logger.debug("Updating List view of playlists for spotify.")
@@ -890,6 +965,40 @@ class MainWindow(QMainWindow):
             ProgressBar(func='spotify_to_plex', **{"sp": self.spotify, "section": selected_section,
                                                    "playlist": name})
             logger.info(f"Spotify playlist '{name}' has been transferred to Plex")
+
+        # Check that playlists were uploaded
+        logger.debug("Refreshing Plex playlist view.")
+        self.plex_update_playlists()
+
+        # Notify user updating playlist complete
+        title = "Playlists Updated"
+        message = 'Playlist update completed without issues! '
+        btns = ['Ok']
+        msgtype = QMessageBox.Information
+        detail = "\n".join(selected_playlists)
+        self.MessageBox(title, message, btns, msgtype, details=detail)
+
+    def spotify_link_transfer(self):
+        logger.debug("Plex Upload button pressed!")
+
+        # Get spotify details
+        logger.debug("Getting selected Plex Section")
+        selected_section, _ = self.get_plex_selections()
+        if selected_section is None:
+            # If no plex section selected, return
+            self.page_clicked(self.ui.page_plex, self.ui.btn_plex_page)
+            return
+
+        # Get Playlist from URL
+        logger.debug("Getting Playlist from URL provided")
+        selected_playlists = self.ui.lned_spotify_url.text()
+        logger.debug(f"Selected Playlists:{selected_playlists}")
+
+        logger.debug(f"Transferring Spotify URL playlist to Plex")
+        logger.debug("Creating Progress Bar Dialog box")
+        ProgressBar(func='spotify_link_to_plex', **{"sp": self.spotify, "section": selected_section,
+                                               "playlist": selected_playlists})
+        logger.info(f"Spotify URL playlist has been transferred to Plex")
 
         # Check that playlists were uploaded
         logger.debug("Refreshing Plex playlist view.")
@@ -1093,7 +1202,7 @@ class ProgressBar(MessageDialog):
     def run_func(self):
 
         # Move worker to thread
-        logger.debug("Moving worker to thread)")
+        logger.debug("Moving worker to thread")
         self.worker.moveToThread(self.thread)  # Connect worker to thread
 
         # Connect Signals and Slots
@@ -1112,6 +1221,8 @@ class ProgressBar(MessageDialog):
             self.thread.started.connect(self.worker.spotify_to_m3u)
         elif self.func == "spotify_to_plex":
             self.thread.started.connect(self.worker.spotify_to_plex)
+        elif self.func == "spotify_link_to_plex":
+            self.thread.started.connect(self.worker.spotify_link_to_plex)
         elif self.func == "test_func":
             self.thread.started.connect(self.worker.test_func)
 
@@ -1201,6 +1312,17 @@ class Worker(QtCore.QObject):
         logger.debug(f"Running spotify_to_plex function. Parameters: Spotify Session, Plex Section, Playlist")
 
         pp.spotify_to_plex(sp, section, playlist, worker=self)
+        self.finished.emit()
+        logger.debug("function complete")
+
+    def spotify_link_to_plex(self):
+        self.msg_changed.emit("Transferring Spotify to Plex")
+        sp = self.kwargs["sp"]
+        section = self.kwargs["section"]
+        playlist = self.kwargs["playlist"]
+        logger.debug(f"Running spotify_to_plex function. Parameters: Spotify Session, Plex Section, Playlist")
+
+        pp.spotify_link_to_plex(sp, section, playlist, worker=self)
         self.finished.emit()
         logger.debug("function complete")
 

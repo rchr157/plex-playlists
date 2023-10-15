@@ -166,43 +166,46 @@ def create_export_file(path: str, playlist_name: str):
 
 
 # <editor-fold desc="############### PLEX Functions ###############">
-def plex_push_playlist(plex, v: dict, prepend: str, section: str, playlists: list):
+def plex_push_playlist(v: dict, section: plexapi.library.MusicSection, playlist: str):
+    # TODO: Format for single push
     # POST new playlists to Plex
     logger.info("Pushing playlists to Plex server.")
     url = v['plex_server'] + '/playlists/upload?'
     headers = {'cache-control': "no-cache"}
-    section_id = plex.library.section(section).key
+    # section_id = plex.library.section(section).key
+    section_id = section.key
+    prepend = section.locations[0]
     failed = []
     response = []
     query = []
 
-    for playlist in playlists:
-        if playlist.endswith('.m3u'):
-            # TODO: Accept other formats aside from .m3u
-            logger.info(f"Sending updated playlist to Plex: {playlist}")
-            path = os.path.dirname(playlist)
-            name = os.path.basename(playlist)
-            folder = os.path.basename(os.path.normpath(path))
-            plex_path = os.path.join(prepend, folder, name)
+    if playlist.endswith('.m3u'):
+        # TODO: Accept other formats aside from .m3u
+        logger.info(f"Sending updated playlist to Plex: {playlist}")
+        path = os.path.dirname(playlist)
+        name = os.path.basename(playlist)
+        folder = os.path.basename(os.path.normpath(path))
+        plex_path = os.path.join(prepend, folder, name)
 
-            querystring = urllib.parse.urlencode(OrderedDict(
-                [("sectionID", section_id), ("path", plex_path), ("X-Plex-Token", v['plex_token'])]))
-            logger.debug(f"Sending request for {name}. url:{url}, query:{querystring[:-20]}")
-            resp = requests.post(
-                url, data="", headers=headers, params=querystring, verify=True)
+        querystring = urllib.parse.urlencode(OrderedDict(
+            [("sectionID", section_id), ("path", plex_path), ("X-Plex-Token", v['plex_token'])]))
+        logger.debug(f"Sending request for {name}. url:{url}, query:{querystring[:-20]}")
+        resp = requests.post(
+            url, data="", headers=headers, params=querystring, verify=True)
 
-            response.append(resp)
-            query.append(resp.url)
+        response.append(resp)
+        query.append(resp.url)
 
-            # If request fails return the response code and reason for failure.
-            if not resp.ok:
-                logger.error(f"Request was not successful. Response: {resp.status_code} {resp.reason}")
-                failed.append(name)
+        # If request fails return the response code and reason for failure.
+        if not resp.ok:
+            logger.error(f"Request was not successful. Response: {resp.status_code} {resp.reason}")
+            failed.append(name)
 
-        else:
-            logger.error(f"File extension not accepted for {playlist}")
+    else:
+        logger.error(f"File extension not accepted for {playlist}")
     # Scan Music Library for new items
-    plex.library.section(section).update()
+    # plex.library.section(section).update()
+    section.update()
     logger.debug(f"Plex Library {section} updated.")
     return failed, response
 
@@ -306,6 +309,10 @@ def spotify_get_playlist_items(sp, playlist):
 
 def spotify_get_track_uri(item):
     return item['uri']
+
+
+def spotify_get_playlist_name(sp, playlist):
+    return sp.playlist(playlist)['name']
 
 #</editor-fold>
 
@@ -479,7 +486,7 @@ def plex_check_tracks(section, tracks, worker):
         if result is not None:
             found_tracks.append(result)
             logger.info(f"Track found: Artist: {track[0]} | Album: {track[1]} | Track: {track[2]}")
-            worker.msg_changed.emit(f"Track Available: {track[0]} - {track[2]}")
+            worker.msg_changed.emit(f"Track Available: \n{track[0]} - {track[2]}")
         else:
             missing_tracks.append(f"{track[0]} - {track[1]} - {track[2]}")
             logger.info(f"**********Track not found: "
@@ -571,9 +578,15 @@ def import_from_plex(playlist: plexapi.playlist.Playlist, worker):
 
 
 def import_from_spotify(sp, playlist: str, worker):
-    available_playlists = spotify_get_available_playlists(sp)
-    # Get playlist tracks from spotify
-    src_playlist = spotify_get_playlist_items(sp, playlist=available_playlists[playlist])
+    url_pattern = re.compile("https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}/playlist/")
+    check_playlist = re.match(url_pattern, playlist)
+    if check_playlist is not None:
+        src_playlist = spotify_get_playlist_items(sp, playlist)
+        name = ""
+    else:
+        available_playlists = spotify_get_available_playlists(sp)
+        # Get playlist tracks from spotify
+        src_playlist = spotify_get_playlist_items(sp, playlist=available_playlists[playlist])
     tracks = []
     for ind, item in enumerate(src_playlist):
         val = int(100 * ind / len(src_playlist))
@@ -667,9 +680,12 @@ def export_to_spotify(sp, source_tracks: list, destination: str, worker):
     if destination not in available_playlists:
         worker.msg_changed.emit(f"Creating new playlist {destination}")
         worker.progress_changed.emit(50)
+        worker.kwargs["public"]
+        worker.kwargs["collab"]
         # If playlist does not exist, create new playlist and add items
         logger.info(f"Playlist '{destination}' not found in Spotify account, creating new playlist.")
-        new_playlist = spotify_create_playlist(sp, user=sp.me()['id'], playlist_name=destination)
+        new_playlist = spotify_create_playlist(sp, user=sp.me()['id'], playlist_name=destination,
+                                               public=worker.kwargs["public"], collaborative=worker.kwargs["collab"] )
         available_track_uris = [track['uri'] for track in available_tracks]
         spotify_add_to_playlist(sp, playlist_uri=new_playlist, items=available_track_uris)
         logger.info(f"{len(available_track_uris)} tracks added to '{destination}' playlist on Spotify.")
@@ -749,6 +765,14 @@ def spotify_to_m3u(sp, playlist: str, prepend: str, export_file: str, worker):
 def spotify_to_plex(sp, section, playlist: str, worker):
     src_tracks = import_from_spotify(sp=sp, playlist=playlist, worker=worker)
     new_tracks, removed_tracks = export_to_plex(section=section, destination=playlist, source_tracks=src_tracks,
+                                                worker=worker)
+    return new_tracks, removed_tracks
+
+
+def spotify_link_to_plex(sp, section, playlist: str, worker):
+    src_tracks = import_from_spotify(sp=sp, playlist=playlist, worker=worker)
+    name = spotify_get_playlist_name(sp, playlist)
+    new_tracks, removed_tracks = export_to_plex(section=section, destination=name, source_tracks=src_tracks,
                                                 worker=worker)
     return new_tracks, removed_tracks
 
