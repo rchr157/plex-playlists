@@ -11,6 +11,8 @@ Plex Playlist is a desktop app that allows users to easily manage their playlist
 - Download playlist from Spotify account as m3u file
 - Upload playlist to Spotify account from m3u file
 - Transfer playlist between services (Plex/Spotify)
+- Upload playlist to plex from Spotify Playlist URL
+- Upload playlist to Plex via POST
 - Format track paths inside m3u playlists
 - Combine multiple m3u files to a single playlist
 
@@ -18,7 +20,6 @@ Plex Playlist is a desktop app that allows users to easily manage their playlist
 - Allow user to review changes between upload playlist and service playlist
 - Allow user to update tracks inside playlist
 - Sync ratings between MusicBee and Plex
-- Add URL link integration
 - Potentially add integration for:
     - Apple Music
     - Itunes
