@@ -33,6 +33,7 @@ class Ui_Form(object):
 "QProgressBar{\n"
 "    background-color:rgb(36, 31, 49);\n"
 "    border-radius:10px;\n"
+"    height: 18px;\n"
 "    color: black;\n"
 "}\n"
 "QProgressBar::chunk{\n"
@@ -93,5 +94,5 @@ class Ui_Form(object):
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
-        self.lbl_progress_msg.setText(_translate("Form", "TextLabel"))
+        self.lbl_progress_msg.setText(_translate("Form", "Processing..."))
         self.btn_progress_cancel.setText(_translate("Form", "Cancel"))

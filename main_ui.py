@@ -102,7 +102,7 @@ class Ui_MainWindow(object):
 "#cmb_library_prepend, #cmb_library_sections, #cmb_spotify_prepend{\n"
 "    background-color: #272727;\n"
 "}\n"
-"#btn_playlist_convert, #btn_playlist_combine, #btn_tutorial, #btn_save_settings, #btn_reset_settings{\n"
+"#btn_playlist_create, #btn_playlist_convert, #btn_playlist_combine, #btn_tutorial, #btn_save_settings, #btn_reset_settings{\n"
 "    background-color: transparent;\n"
 "    border: 1px solid #E5A00D;\n"
 "    color: #E5A00D;\n"
@@ -805,6 +805,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_6.setContentsMargins(200, -1, 200, -1)
         self.horizontalLayout_6.setSpacing(30)
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
+        self.btn_playlist_create = QtWidgets.QPushButton(self.frame_playlist_body)
+        self.btn_playlist_create.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.btn_playlist_create.setObjectName("btn_playlist_create")
+        self.horizontalLayout_6.addWidget(self.btn_playlist_create)
         self.btn_playlist_convert = QtWidgets.QPushButton(self.frame_playlist_body)
         self.btn_playlist_convert.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.btn_playlist_convert.setIconSize(QtCore.QSize(24, 24))
@@ -1116,7 +1120,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.stackedWidget.setCurrentIndex(4)
+        self.stackedWidget.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.cmb_playlist_prepend, self.lned_custom_prepend)
         MainWindow.setTabOrder(self.lned_custom_prepend, self.btn_add_prepend)
@@ -1160,6 +1164,7 @@ class Ui_MainWindow(object):
         self.lbl_playlist_title.setText(_translate("MainWindow", "Mange Your Playlists"))
         self.lbl_playlist_prepend.setText(_translate("MainWindow", "Library Section Directory"))
         self.lbl_custom_prepend.setText(_translate("MainWindow", "Add New Directory Path"))
+        self.btn_playlist_create.setText(_translate("MainWindow", "Create"))
         self.btn_playlist_convert.setText(_translate("MainWindow", "Convert"))
         self.btn_playlist_combine.setText(_translate("MainWindow", "Combine"))
         self.lbl_settings_title.setText(_translate("MainWindow", "Settings"))
