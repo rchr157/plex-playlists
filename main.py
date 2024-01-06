@@ -155,6 +155,7 @@ class MainWindow(QMainWindow):
         # Playlist Page
         self.ui.cmb_library_sections.currentTextChanged.connect(self.plex_update_playlists)
         self.ui.btn_add_prepend.clicked.connect(self.add_prepend)
+        self.ui.btn_playlist_create.clicked.connect(self.create_playlists)
         self.ui.btn_playlist_convert.clicked.connect(self.convert_playlists)
         self.ui.btn_playlist_combine.clicked.connect(self.combine_playlists)
 
@@ -392,6 +393,23 @@ class MainWindow(QMainWindow):
                                       stylesheet="background-color: #1B1B1B; border-color: #1B1B1B; color: #BABABA;",
                                       icon=icons[button][1])
 
+    def update_combobox(self, combo: QComboBox, entries):
+        combo_list = [combo.itemText(i) for i in range(combo.count())]
+        # Check if list is provided as entry
+        if isinstance(entries, list):
+            for entry in entries:
+                # Check entry is not already in the list
+                if entry not in combo_list:
+                    combo.addItem(entry)
+                    combo.update()
+            # Set current text to the first item in new entries
+            combo.setCurrentText(entries[0])
+        else:
+            if entries not in combo_list:
+                combo.addItem(entries)
+                combo.update()
+                combo.setCurrentText(entries)
+
     @QtCore.pyqtSlot()
     def check_plex_connect_btn(self):
         logger.debug("Checking conditions to enable Plex Connect button.")
@@ -587,8 +605,9 @@ class MainWindow(QMainWindow):
         self.ui.list_library_playlist.clear()
         if selected_section != 'Select a Music Library':
             # Grab data path for selected library section
-            self.ui.cmb_library_prepend.addItems(self.plex.library.section(selected_section).locations)
-            self.ui.cmb_playlist_prepend.addItems(self.plex.library.section(selected_section).locations)
+            self.update_combobox(self.ui.cmb_library_prepend, self.plex.library.section(selected_section).locations)
+            self.update_combobox(self.ui.cmb_playlist_prepend, self.plex.library.section(selected_section).locations)
+            self.update_combobox(self.ui.cmb_spotify_prepend, self.plex.library.section(selected_section).locations)
             # Grab available playlists for selected library section
             available_playlists = [playlist.title for playlist in
                                    self.plex.library.section(selected_section).playlists()]
@@ -637,9 +656,9 @@ class MainWindow(QMainWindow):
             func = "m3u_to_plex"
             parameters = {"section": selected_section}
 
-            # Ask user to select files
-            files = self.get_files()
-            if files is None: return
+        # Ask user to select files
+        files = self.get_files()
+        if files is None: return
 
         for file in files:
             logger.debug(f"Uploading '{file}' to Plex via POST.")
@@ -826,10 +845,7 @@ class MainWindow(QMainWindow):
                  ":/light/icons/light/cloud-upload-svgrepo-com.svg"]
         # Clear objects and update libraries available on spotify
         self.ui.list_spotify_playlist.clear()
-        self.ui.cmb_spotify_prepend.addItems(self.variables['prepends'])
-        self.ui.cmb_spotify_prepend.setCurrentText(self.variables['prepends'][0])
-        self.ui.cmb_playlist_prepend.addItems(self.variables['prepends'])
-        self.ui.cmb_playlist_prepend.setCurrentText(self.variables['prepends'][0])
+        self.update_combobox(self.ui.cmb_spotify_prepend, self.variables["prepends"])
         # Grab available playlists for selected library section
         available_playlists = pp.spotify_get_available_playlists(self.spotify)
         if not available_playlists:
@@ -1016,6 +1032,43 @@ class MainWindow(QMainWindow):
 
     # <editor-fold desc="############### Playlist Page Functions ###############">
     # Playlist Functions
+    def create_playlists(self):
+        playlist_directory = self.FileDialog(directory=self.ui.lned_playlist_directory.text(), is_folder=True)
+        prepend = self.ui.cmb_playlist_prepend.currentText()
+        # Select folder playlist
+        # current_directory = filedialog.askdirectory(initialdir='~/Synology/')  # TODO: unhardcode directory
+        if not playlist_directory:
+            logger.debug("No directory selected.")
+            return
+        # folders = os.listdir(playlist_directory)
+        playlist_name = os.path.basename(os.path.normpath(playlist_directory[0])) + '.m3u'
+        filepath = os.path.join(playlist_directory[0], playlist_name)
+
+        # Go through each folder, find all tracks, and write to m3u playlist
+        extension = ('.mp3', '.flac')
+        tracks = []
+        for path, subdirs, files in os.walk(playlist_directory[0]):
+            for name in files:
+                if name.endswith(extension):
+                    track = os.path.join(path, name)
+                    # TODO: remove hard coded path, use variables.json file
+                    # TODO: Add user request if they want to override file if it already exists, or append
+                    track = track.replace(playlist_directory[0], prepend).replace('\\',
+                                                                                          '/')  # replace(current_directory, 'Z:\home\christian\Synology\Music\All Music').replace('/', '\\')'/volume1/music/All Music'
+                    tracks.append(track)
+        with open(filepath, "w") as output:
+            # Writing data to a file
+            output.write("\n".join(tracks))
+
+        # Let user know playlist has been created
+        logger.info(f"Playlist {playlist_name} has been created.")
+        title = "Playlist Created"
+        buttons = ['Ok', 'Move']
+        msgtype = QMessageBox.Information
+        # First Message
+        message = "Your playlist file has been created!"
+        self.MessageBox(title, message, buttons, msgtype)
+
     def convert_playlists(self):
         # TODO: Refactor convert_playlist function
         # This function changes the prepend (path to file) for a playlist
@@ -1090,20 +1143,27 @@ class MainWindow(QMainWindow):
         # This function adds a new preppend option in the dropdown box
         logger.debug("Add button for prepend has been pressed!")
         new_prepend = self.ui.lned_custom_prepend.text()
-        if new_prepend:
+        if new_prepend not in self.variables["prepends"]:
+            # TODO: Simplify, just have all the combo lists update
             self.variables["prepends"].append(new_prepend)  # Add to saved variables
             # Add to dropdown in Playlist page
-            self.ui.cmb_playlist_prepend.addItem(new_prepend)
-            self.ui.cmb_playlist_prepend.update()
-            self.ui.cmb_playlist_prepend.setCurrentText(new_prepend)
+            self.update_combobox(self.ui.cmb_playlist_prepend, new_prepend)
             # Add to Plex page dropdown
-            self.ui.cmb_library_prepend.addItem(new_prepend)
-            self.ui.cmb_library_prepend.update()
-            self.ui.cmb_library_prepend.setCurrentText(new_prepend)
+            self.update_combobox(self.ui.cmb_library_prepend, new_prepend)
             # Add to Spotify page dropdown
-            self.ui.cmb_spotify_prepend.addItem(new_prepend)
-            self.ui.cmb_spotify_prepend.update()
-            self.ui.cmb_spotify_prepend.setCurrentText(new_prepend)
+            self.update_combobox(self.ui.cmb_spotify_prepend, new_prepend)
+
+            # self.ui.cmb_playlist_prepend.addItem(new_prepend)
+            # self.ui.cmb_playlist_prepend.update()
+            # self.ui.cmb_playlist_prepend.setCurrentText(new_prepend)
+            # # Add to Plex page dropdown
+            # self.ui.cmb_library_prepend.addItem(new_prepend)
+            # self.ui.cmb_library_prepend.update()
+            # self.ui.cmb_library_prepend.setCurrentText(new_prepend)
+            # # Add to Spotify page dropdown
+            # self.ui.cmb_spotify_prepend.addItem(new_prepend)
+            # self.ui.cmb_spotify_prepend.update()
+            # self.ui.cmb_spotify_prepend.setCurrentText(new_prepend)
             # clear the line edit widget
             self.ui.lned_custom_prepend.clear()
             logger.debug(f"New prepend added: {new_prepend}")
@@ -1225,6 +1285,8 @@ class ProgressBar(MessageDialog):
             self.thread.started.connect(self.worker.spotify_link_to_plex)
         elif self.func == "test_func":
             self.thread.started.connect(self.worker.test_func)
+        elif self.func == "plex_push_via_post":
+            self.thread.started.connect(self.worker.m3u_to_plex_via_post)
 
         self.worker.finished.connect(self.thread.quit)  # Once worker finishes, quit thread
         self.worker.finished.connect(self.worker.deleteLater)  # Once worker finishes, delete worker
@@ -1326,12 +1388,22 @@ class Worker(QtCore.QObject):
         self.finished.emit()
         logger.debug("function complete")
 
+    def m3u_to_plex_via_post(self):
+        logger.debug(f"Running M3U to Plex via POST function. Parameters: Variables, Plex Section, File")
+        self.msg_changed.emit("Transferring M3u to Plex")
+        section = self.kwargs["section"]
+        file = self.kwargs["file"]
+        variables = self.kwargs["variables"]
+        pp.m3u_to_plex_via_post(v=variables, section=section, file=file, worker=self)
+        self.finished.emit()
+        logger.debug("function complete.")
+
     def test_func(self):
         logger.debug(f"Running test function.")
         self.msg_changed.emit("Trying out test function")
         pp.test_import_func(worker=self)
         self.finished.emit()
-        logger.debug("function complete")
+        logger.debug("function complete.")
 
 
 class SettingsManager(QtCore.QObject):

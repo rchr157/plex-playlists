@@ -12,6 +12,7 @@ import time
 from collections import OrderedDict
 import pandas as pd
 
+# <editor-folding desc="############### Logger ###############">
 # Setup Logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -26,7 +27,7 @@ logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 
 multidisc = ["CD1", "CD2", "Disc1", "Disc2"]
-
+# </editor-fold>
 
 # <editor-folding desc="############### General Functions ###############">
 def load_variables(varfile=None):
@@ -166,13 +167,12 @@ def create_export_file(path: str, playlist_name: str):
 
 
 # <editor-fold desc="############### PLEX Functions ###############">
-def plex_push_playlist(v: dict, section: plexapi.library.MusicSection, playlist: str):
+def plex_push_playlist(v: dict, section: plexapi.library.MusicSection, playlist: str, worker):
     # TODO: Format for single push
     # POST new playlists to Plex
     logger.info("Pushing playlists to Plex server.")
     url = v['plex_server'] + '/playlists/upload?'
     headers = {'cache-control': "no-cache"}
-    # section_id = plex.library.section(section).key
     section_id = section.key
     prepend = section.locations[0]
     failed = []
@@ -182,10 +182,17 @@ def plex_push_playlist(v: dict, section: plexapi.library.MusicSection, playlist:
     if playlist.endswith('.m3u'):
         # TODO: Accept other formats aside from .m3u
         logger.info(f"Sending updated playlist to Plex: {playlist}")
-        path = os.path.dirname(playlist)
         name = os.path.basename(playlist)
-        folder = os.path.basename(os.path.normpath(path))
-        plex_path = os.path.join(prepend, folder, name)
+        if prepend not in playlist:
+            path = os.path.normpath(playlist)
+            broken_path = path.split(os.sep)
+            norm_prepend = os.path.normpath(prepend)
+            rpl_path = os.path.join(os.sep, *broken_path[:broken_path.index(norm_prepend.split(os.sep)[-1]) + 1])
+            plex_path = playlist.replace(rpl_path, prepend)
+
+        logger.debug(f"Attempting Sending POST.%")
+        worker.msg_changed.emit(f"Attempting sending playlist via POST: {name}")
+        worker.progress_changed.emit(50)
 
         querystring = urllib.parse.urlencode(OrderedDict(
             [("sectionID", section_id), ("path", plex_path), ("X-Plex-Token", v['plex_token'])]))
@@ -200,11 +207,15 @@ def plex_push_playlist(v: dict, section: plexapi.library.MusicSection, playlist:
         if not resp.ok:
             logger.error(f"Request was not successful. Response: {resp.status_code} {resp.reason}")
             failed.append(name)
+            worker.msg_changed.emit("Import Failed.")
+            worker.progress_changed.emit(0)
+        else:
+            worker.msg_changed.emit("Import Complete!")
+            worker.progress_changed.emit(100)
 
     else:
         logger.error(f"File extension not accepted for {playlist}")
     # Scan Music Library for new items
-    # plex.library.section(section).update()
     section.update()
     logger.debug(f"Plex Library {section} updated.")
     return failed, response
@@ -319,12 +330,16 @@ def spotify_get_playlist_name(sp, playlist):
 
 # <editor-fold desc="############### Search Tracks ###############">
 def compare_str(item, query: str):
-    return item.title.lower() == query.lower()
+    # Remove special characters from strings
+    fmt_item = ''.join(e for e in item.title if e.isalnum())
+    fmt_query = ''.join(e for e in query if e.isalnum())
+    return fmt_item.lower() == fmt_query.lower()
 
 
 def plex_search(section: plexapi.library.MusicSection, query: tuple):
     # TODO: Refactor plex search function
-    results = section.hubSearch(query=f"{query[0]} - {query[2]}", mediatype='track')
+    # TODO: Improve Search Query Results
+    results = section.hubSearch(query=f"{query[2]}", mediatype='track', limit=200)
     prepend = section.locations[0]
     for item in results:
         # Check if artist, album, and track match
@@ -340,8 +355,17 @@ def plex_search(section: plexapi.library.MusicSection, query: tuple):
         if compare_str(item.artist(), query[0]) and compare_str(item, query[2]):
             if re.search(prepend, item.locations[0]) is not None:
                 # Check that its in the correct library path
-                logger.info(f"Found match on Plex for Artist: {query[0]} | Track: {query[2]}")
+                logger.info(f"Found questionable match on Plex for Artist: {query[0]} | Track: {query[2]}")
                 return item
+
+    for item in results:
+        # Check if album matches if aritst is under "Various Artist"
+        if (compare_str(item.artist(), 'Various Artists') and compare_str(item.album(), query[1])
+                and compare_str(item, query[2])):
+            # if re.search(prepend, item.locations[0]) is not None:
+                # Check that its in the correct library path
+            logger.info(f"!!!!!!!!!!!Found match on Plex for Artist: {query[0]} | Track: {query[2]}")
+            return item
     # Otherwise, return nothing
     logger.info(f"Did not find any match on Plex for Artist: {query[0]} | Album: {query[1]} | Track: {query[2]}")
     return None
@@ -740,6 +764,11 @@ def m3u_to_plex(section, file: str, worker):
     new_tracks, removed_tracks = export_to_plex(section=section, destination=playlist_name, source_tracks=src_tracks,
                                                 worker=worker)
     return new_tracks, removed_tracks
+
+
+def m3u_to_plex_via_post(v, section, file: str, worker):
+    plex_push_playlist(v=v, section=section, playlist=file, worker=worker)
+    return None, None
 
 
 def plex_to_spotify(sp, section, playlist: str, worker):
